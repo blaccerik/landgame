@@ -10,6 +10,13 @@ import com.example.landgame.pathfinding.Vector;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +24,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
+import static com.example.landgame.config.Config.storeFlowMatrix;
 import static com.example.landgame.pathfinding.PathMatrix.chunkBits;
 import static com.example.landgame.pathfinding.PathMatrix.chunkSize;
 
@@ -46,6 +54,92 @@ public class Map {
                 this.matrix[i][j] = -2;
             }
         }
+
+        if (storeFlowMatrix) {
+            updateFlowField();
+        }
+    }
+
+    private String mapToFileName() {
+        return this.height + "_" + this.width + ".map";
+    }
+
+    private void updateFlowField() {
+        String fileName = mapToFileName();
+        try {
+            FileReader reader = new FileReader(fileName);
+            BufferedReader buffer = new BufferedReader(reader, 16384);
+
+            try {
+
+                for (int i = 0; i < width * height; i++) {
+                    for (int j = 0; j < width * height; j++) {
+                        String[] strings = buffer.readLine().split(" ");
+                    }
+//                    fileWriter.write(stringBuilder.toString());
+                }
+
+
+//                for (int i = 0; i < this.height; i++) {
+//                    for (int j = 0; j < this.width; j++) {
+//                        for (int k = 0; k < this.height; k++) {
+//                            for (int l = 0; l < this.width; l++) {
+//                                int n = Integer.parseInt(buffer.readLine());
+//                                setMoveNumber(i,j,k,l,n);
+//                            }
+//                        }
+//                    }
+//                    System.out.println(i +":" + this.height);
+//                }
+                buffer.close();
+                reader.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+
+
+
+
+
+        } catch (FileNotFoundException e) {
+            try {
+                System.out.println("Creating file");
+                FileWriter myWriter = new FileWriter(fileName);
+                mapToFile(myWriter);
+                myWriter.close();
+                System.out.println("Successfully wrote to the file.");
+            } catch (IOException ee) {
+                System.out.println("An error occurred.");
+                ee.printStackTrace();
+            }
+        }
+    }
+
+    private void mapToFile(FileWriter fileWriter) throws IOException {
+
+
+        for (int i = 0; i < width * height; i++) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int j = 0; j < width * height; j++) {
+                int n = this.matrix[i][j];
+                stringBuilder.append(n);
+                stringBuilder.append(" ");
+            }
+            fileWriter.write(stringBuilder.toString());
+            fileWriter.write("\n");
+        }
+
+//        for (int i = 0; i < this.height; i++) {
+//            for (int j = 0; j < this.width; j++) {
+//                for (int k = 0; k < this.height; k++) {
+//                    for (int l = 0; l < this.width; l++) {
+//                        int number = findPath(i,j,k,l);
+//                    }
+//                }
+//            }
+//            System.out.println(i +":" + this.height);
+//        }
+
     }
 
     public Terrain getTile(int x, int y) {

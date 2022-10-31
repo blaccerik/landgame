@@ -198,11 +198,11 @@ public class Team {
 
 
         // todo remove bad moves before
-        int badMove = oppositeMove(player.getLastMove());
-        moves.removeIf(p -> p.getMoveNumber() == badMove);
-        int size = moves.size();
-        moves.removeIf(p -> p.getMoveType().equals(ILLEGAL));
-        boolean hadIllegal = moves.size() != size;
+//        int badMove = oppositeMove(player.getLastMove());
+//        moves.removeIf(p -> p.getMoveNumber() == badMove);
+//        int size = moves.size();
+//        moves.removeIf(p -> p.getMoveType().equals(ILLEGAL));
+//        boolean hadIllegal = moves.size() != size;
         float score2 = moves.get(0).getScore();
         moves.removeIf(p -> p.getScore() != score2);
 //        if (hadIllegal) {
@@ -295,6 +295,7 @@ public class Team {
 
     public Direction getBestMove(
             Player player,
+            boolean canBuild,
             List<Direction> legalMoves,
             AllMoveStats enemyStats,
             AllMoveStats houseStats,
@@ -306,7 +307,7 @@ public class Team {
 
         // todo house should be away from enemies
         //  select best player for that job
-        if (hasResourcesToBuildHouse()) {
+        if (canBuild && hasResourcesToBuildHouse()) {
             // todo check if there is no building
             return new Direction(x, y, 0, null, BUILD, 0);
         }

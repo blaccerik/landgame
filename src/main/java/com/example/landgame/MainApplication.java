@@ -53,8 +53,8 @@ public class MainApplication extends javafx.application.Application {
         canvas = new Canvas(map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
 
         TeamConfig teamConfig = new TeamConfig(
-                4,
-                6,
+                2,
+                2,
                 1,
                 301,
                 2,
@@ -66,7 +66,7 @@ public class MainApplication extends javafx.application.Application {
         List<Entity> entities = new ArrayList<>();
         entities.add(blue.createPlayer(149, 149, Farmer.class));
         entities.add(red.createPlayer(0, 149, Farmer.class));
-//        entities.add(green.createPlayer(149, 0, Farmer.class));
+        entities.add(green.createPlayer(149, 0, Farmer.class));
         entities.addAll(map.getTerrainGeneration().generateResources());
 
 //        // generate game

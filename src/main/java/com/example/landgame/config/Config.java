@@ -2,6 +2,8 @@ package com.example.landgame.config;
 
 public class Config {
 
+    public static final boolean storeFlowMatrix = true;
+
 
     public static final long weightChange = 50;
 

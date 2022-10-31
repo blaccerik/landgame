@@ -337,14 +337,16 @@ public class Game {
         List<Direction> list = new ArrayList<>();
         int x = player.getX();
         int y = player.getY();
-        int notBlocked = 0;
-        Direction best = null;
-//        int badMove = Team.oppositeMove(player.getLastMove());
-        int badMove = 100;
+//        int notBlocked = 0;
+//        Direction best = null;
+        int badMove = Team.oppositeMove(player.getLastMove());
+        Direction badDirection = null;
+//        int badMove = 100;
         for (Direction direction: Game.directions) {
             int finalX = x + direction.getX();
             int finalY = y + direction.getY();
-            if (this.map.isMovable(finalX, finalY) && direction.getMoveNumber() != badMove) {
+            int moveNumber = direction.getMoveNumber();
+            if (this.map.isMovable(finalX, finalY)) {
                 Terrain terrain = this.map.getTile(finalX, finalY);
                 Building building = terrain.getBuilding();
 
@@ -355,10 +357,14 @@ public class Game {
 
                 Entity entity = terrain.getEntity();
                 if (entity == null) {
-                    notBlocked++;
-                    Direction legal = new Direction(finalX, finalY, direction.getMoveNumber(), null, MOVE, 0);
-                    best = legal;
-                    list.add(legal);
+                    Direction legal = new Direction(finalX, finalY, moveNumber, null, MOVE, 0);
+                    if (moveNumber == badMove) {
+                        badDirection = legal;
+                    } else {
+//                        notBlocked++;
+                        list.add(legal);
+                    }
+
                 } else if (!entity.sameTeam(player)) {  // if next object is foreign then attack it
                     return Collections.singletonList(new Direction(x, y, 0, entity, ATTACK, 0));
                 }
@@ -367,10 +373,8 @@ public class Game {
 //                }
             }
         }
-        if (notBlocked == 0) {
-            return Collections.emptyList();
-        } else if (notBlocked == 1) {
-            return Collections.singletonList(best);
+        if (list.size() == 0 && badDirection != null) {
+            list.add(badDirection);
         }
         return list;
     }
@@ -403,6 +407,10 @@ public class Game {
         return allMoveStats;
     }
 
+    private boolean canBuild(int x, int y) {
+        return this.map.getTile(x,y).getBuilding() == null;
+    }
+
     public void tick() {
 
         /* todo fix when multiple players go straight
@@ -423,9 +431,11 @@ public class Game {
                 AllMoveStats enemyStats = getAllMoveStats(player, this.players);
                 AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
                 AllMoveStats resourceStats = getAllMoveStats(player, this.resources);
+                boolean canBuild = canBuild(player.getX(), player.getY());
 
                 Direction bestMove = player.getTeam().getBestMove(
                         player,
+                        canBuild,
                         legalMoves,
                         enemyStats,
                         houseStats,
