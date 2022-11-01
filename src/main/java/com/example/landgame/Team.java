@@ -38,6 +38,7 @@ public class Team {
     private int houseMoveWeight;
     private int resourceMoveWeight;
     private final TeamConfig teamConfig;
+    private final Random random;
 
     public final static Comparator<Direction> comparator = new Comparator<Direction>(){
         @Override
@@ -61,6 +62,7 @@ public class Team {
         this.houseMoveWeight = teamConfig.getHouseMoveWeight();
         this.resourceMoveWeight = teamConfig.getResourceMoveWeight();
         this.teamConfig = teamConfig;
+        this.random = new Random();
 
     }
 
@@ -212,86 +214,9 @@ public class Team {
 //                }
 //            }
 //        }
-        Random random = new Random();
-        return moves.get(random.nextInt(moves.size()));
-
-
-//        float bestScore = moves.get(0).getScore();
-//        boolean hasILLEGAL = moves.get(0).getMoveType().equals(ILLEGAL);
-//        System.out.println(moves);
-//        List<Direction> top = new ArrayList<>();
-//        List<Direction> rest = new ArrayList<>();
-//        for (Direction direction : moves) {
-//            if (hasILLEGAL) {
-//                if (direction.getScore() == bestScore && !direction.getMoveType().equals(ILLEGAL)) {
-//                    top.add(direction);
-//                } else if (!direction.getMoveType().equals(ILLEGAL)) {
-//                    rest.add(direction);
-//                }
-//            } else {
-//                if (direction.getScore() == bestScore) {
-//                    top.add(direction);
-//                } else if (!direction.getMoveType().equals(ILLEGAL)) {
-//                    rest.add(direction);
-//                }
-//            }
-//        }
 //        Random random = new Random();
-//        if (top.size() > 0) {
-//            return top.get(random.nextInt(top.size()));
-//        } else {
-//            float score2 = rest.get(0).getScore();
-//            rest.removeIf(p -> p.getScore() != score2);
-//            return rest.get(random.nextInt(rest.size()));
-//        }
+        return moves.get(this.random.nextInt(moves.size()));
     }
-
-//    public Direction filterMoves(Player player, List<Direction> moves) {
-//        System.out.println(player);
-//        moves.sort(comparator);
-//        int badMove = oppositeMove(player.getLastMove());
-//        float bestScore = moves.get(0).getScore();
-//        int topEnd = 0;
-//        int restStart = 0;
-//        List<Direction> top = new ArrayList<>();
-//        List<Direction> rest = new ArrayList<>();
-//        boolean containsIllegal = false;
-//        System.out.println(moves);
-//        for (int i = 0; i < moves.size(); i++) {
-//            Direction direction = moves.get(i);
-//            if (direction.getScore() == bestScore) {
-//                if (direction.getMoveNumber() != badMove) {
-//                    top.add(direction);
-//                }
-//
-//                if (direction.getMoveType().equals(ILLEGAL)) {
-//                    containsIllegal = true;
-//                }
-//            } else {
-//                if (!direction.getMoveType().equals(ILLEGAL) && direction.getMoveNumber() != badMove) {
-//                    rest.add(direction);
-//                }
-//            }
-//        }
-//        Random random = new Random();
-//        if (containsIllegal) {
-//            top.removeIf(p -> p.getMoveType().equals(ILLEGAL));
-//            if (top.size() > 0) {
-//                System.out.println(top);
-//                return top.get(random.nextInt(top.size()));
-//            }
-//            for (Direction direction: rest) {
-//                if (direction.getMoveNumber() == player.getLastMove()) {
-//                    return direction;
-//                }
-//            }
-//            float score2 = rest.get(0).getScore();
-//            rest.removeIf(p -> p.getScore() != score2);
-//            return rest.get(random.nextInt(rest.size()));
-//        } else {
-//            return top.get(random.nextInt(top.size()));
-//        }
-//    }
 
     public Direction getBestMove(
             Player player,

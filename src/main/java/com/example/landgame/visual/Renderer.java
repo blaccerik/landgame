@@ -1,5 +1,6 @@
 package com.example.landgame.visual;
 
+import com.example.landgame.Game;
 import com.example.landgame.Team;
 import com.example.landgame.map.Map;
 import com.example.landgame.map.Terrain;
@@ -41,12 +42,16 @@ public class Renderer {
 
     }
 
-    public void upDateStats(Team[] teams) {
+    public void upDateStats(Game game) {
         StringBuilder s = new StringBuilder();
+        Team[] teams = game.getTeams();
         for (int i = 0; i < teams.length; i++) {
             s.append(teams[i].getScore());
             s.append("\n");
         }
+        s.append(game.getMap().getTotalTiles());
+        s.append(" | ");
+        s.append(game.getMap().getExploredTiles());
         this.text.setText(s.toString());
     }
 

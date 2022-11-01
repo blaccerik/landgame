@@ -175,8 +175,6 @@ public class Game {
                     }
                     this.players.add((Player) t);
                     this.map.getTile(x,y).setEntity(t);
-                } else {
-                    this.removeEntities.add(t);
                 }
             } else if (t instanceof Building) {
                 if (this.map.isBuildable(x,y)) {
@@ -188,15 +186,11 @@ public class Game {
                     Building building = (Building) t;
                     this.buildings.add(building);
                     this.map.getTile(x,y).setBuilding(building);
-                } else {
-                    this.removeEntities.add(t);
                 }
             } else if (t instanceof Resource) {
                 if (this.map.isBlocked(x,y) && this.map.getTile(x,y).getTerrainType().equals(LAND)) {
                     this.resources.add((Resource) t);
                     this.map.getTile(x,y).setEntity(t);
-                } else {
-                    this.removeEntities.add(t);
                 }
             } else {
                 throw new RuntimeException("typrrrr");
@@ -248,22 +242,23 @@ public class Game {
             Entity entity = this.removeEntities.poll();
             int x = entity.getX();
             int y = entity.getY();
+            boolean a;
             if (entity instanceof Player) {
-                this.players.remove(entity);
+                a = this.players.remove(entity);
                 this.map.getTile(x, y).setEntity(null);
             } else if (entity instanceof Resource) {
-                this.resources.remove(entity);
+                a = this.resources.remove(entity);
                 this.map.getTile(x, y).setEntity(null);
             } else if (entity instanceof Building) {
-                boolean a = this.buildings.remove(entity);
-                if (globalCheck) {
-                    if (!a) {
-                        throw new RuntimeException("ewew");
-                    }
-                }
+                a = this.buildings.remove(entity);
                 this.map.getTile(x, y).setBuilding(null);
             } else {
                 throw new RuntimeException("clanene");
+            }
+            if (globalCheck) {
+                if (!a) {
+                    throw new RuntimeException("ewew");
+                }
             }
         }
     }

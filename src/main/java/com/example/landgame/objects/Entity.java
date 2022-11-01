@@ -19,7 +19,6 @@ public class Entity {
     @Setter(AccessLevel.PUBLIC)
     protected int health;
 
-
     public boolean takeDamage(Player player) {
         throw new RuntimeException("rer343434");
     }

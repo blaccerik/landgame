@@ -2,9 +2,6 @@ package com.example.landgame.config;
 
 public class Config {
 
-    public static final boolean storeFlowMatrix = true;
-
-
     public static final long weightChange = 50;
 
     // healths
@@ -22,12 +19,12 @@ public class Config {
     public static final int farmerPlayerDamage = 1;
     // spawn rates
     public static final long goldSpawnRate = 50;
-    public static final long stoneSpawnRate = 5;
-    public static final long treeSpawnRate = 5;
+    public static final long stoneSpawnRate = 1;
+    public static final long treeSpawnRate = 1;
     public static final long houseSpawnRate = 10;
-    public static final float stoneProbability = 0.10f;
+    public static final float stoneProbability = 0.20f;
     public static final float goldProbability = 0.01f;
-    public static final float treeProbability = 0.10f;
+    public static final float treeProbability = 0.20f;
 
     // costs
     public static final int houseStoneCost = 10;

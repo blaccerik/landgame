@@ -53,8 +53,8 @@ public class MainApplication extends javafx.application.Application {
         canvas = new Canvas(map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
 
         TeamConfig teamConfig = new TeamConfig(
-                2,
-                2,
+                1,
+                10,
                 1,
                 301,
                 2,
@@ -116,7 +116,7 @@ public class MainApplication extends javafx.application.Application {
 ////                    System.out.println("That took " + difference + " milliseconds");
                     lastUpdate = now;
                     renderer.render(game.getMap());
-                    renderer.upDateStats(game.getTeams());
+                    renderer.upDateStats(game);
                 }
             }
         };
