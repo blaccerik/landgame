@@ -14,6 +14,7 @@ public class Player extends Entity {
     protected final Team team;
     protected final int damageToPlayers;
     protected int lastMove;
+
 //    protected final Queue<Integer> lastMoves;
 //    protected final int lastMovesSize = 3;
 

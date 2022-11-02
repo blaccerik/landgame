@@ -32,8 +32,8 @@ public class Map {
     private int exploredTiles;
     private final Random random;
     private final Terrain[][] terrain;
-//    private final int[][] matrix;
-    private final int[] coords;
+    private final int[][] matrix;
+//    private final int[] coords;
     private final TerrainGeneration terrainGeneration;
 
     public Map(int width, int height, Random random) {
@@ -61,15 +61,18 @@ public class Map {
 //                this.terrain[i][j] = new Terrain(i,j, TerrainType.LAND);
 //            }
 //        }
-        this.coords = new int[width * height * width * height];
-        Arrays.fill(this.coords, -2);
-
-//        this.matrix = new int[width * height][width * height];
-//        for (int i = 0; i < width * height; i++) {
-//            for (int j = 0; j < width * height; j++) {
-//                this.matrix[i][j] = -2;
-//            }
+//        this.coords = new int[width * height * width * height];
+//        for (int i = 0; i < this.coords.length; i++) {
+//            this.coords[i] = -2;
 //        }
+//        Arrays.fill(this.coords, -2);
+
+        this.matrix = new int[width * height][width * height];
+        for (int i = 0; i < width * height; i++) {
+            for (int j = 0; j < width * height; j++) {
+                this.matrix[i][j] = -2;
+            }
+        }
     }
 
     public Terrain getTile(int x, int y) {
@@ -80,16 +83,16 @@ public class Map {
         final int shift = this.height * this.width;
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
-        return this.coords[coords + coorde * shift];
-//        return this.matrix[coords][coorde];
+//        return this.coords[coords + coorde * shift];
+        return this.matrix[coords][coorde];
     }
 
     public void setMoveNumber(int xs, int ys, int xe, int ye, int moveNumber) {
         final int shift = this.height * this.width;
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
-        this.coords[coords + coorde * shift] = moveNumber;
-//        this.matrix[coords][coorde] = moveNumber;
+//        this.coords[coords + coorde * shift] = moveNumber;
+        this.matrix[coords][coorde] = moveNumber;
     }
 
     private boolean isOut(int x, int y) {
@@ -222,24 +225,25 @@ public class Map {
 
 
         int a = 0;
-        for (int iter = 0; iter < 150; iter++) {
-            for (int i = 0; i < size; i++) {
-                a += map.findPath(47,47, iter,i);
-            }
-        }
+//        for (int iter = 0; iter < 150; iter++) {
+//            for (int i = 0; i < size; i++) {
+//                a += map.findPath(47,47, iter,i);
+//            }
+//        }
 
         long s = System.currentTimeMillis();
         Random random1 = new Random();
         for (int i = 0; i < 100000; i++) {
             int x = random1.nextInt(150);
-            a += map.findPath(47,47, x, x);
+            int y = random1.nextInt(150);
+            a += map.findPath(47,47, x, y);
         }
 
         long e = System.currentTimeMillis();
         System.out.println("time: " + (e - s));
         System.out.println(a);
-        // 1d: 10 12 15 16
-        // 2d: 34 33 34
+        // 1d: 17.9 17.1 18.5
+        // 2d: 50.1
 
 //        System.out.println(map.getHeight());
 //        map.findPath()

@@ -3,6 +3,7 @@ package com.example.landgame;
 import com.example.landgame.better.entities.Object;
 import com.example.landgame.better.entities.Rock;
 import com.example.landgame.better.entities.Worker;
+import com.example.landgame.config.TeamConfig;
 import com.example.landgame.enums.MoveType;
 import com.example.landgame.gamelogic.ActuallMove;
 import com.example.landgame.gamelogic.Coords;
@@ -10,6 +11,7 @@ import com.example.landgame.map.Map;
 import com.example.landgame.map.Terrain;
 import com.example.landgame.objects.Entity;
 import com.example.landgame.objects.Building;
+import com.example.landgame.objects.Farmer;
 import com.example.landgame.objects.Gold;
 import com.example.landgame.objects.House;
 import com.example.landgame.objects.Player;
@@ -32,6 +34,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
+import static com.example.landgame.enums.TeamColor.BLUE;
+import static com.example.landgame.enums.TeamColor.GREEN;
+import static com.example.landgame.enums.TeamColor.RED;
 import static com.example.landgame.enums.TerrainType.*;
 import static com.example.landgame.enums.MoveType.*;
 import static com.example.landgame.config.Config.*;
@@ -206,11 +211,6 @@ public class Game {
         if (direction.getX() != player.getX() || direction.getY() != player.getY()) {
             this.map.getTile(player.getX(), player.getY()).setEntity(null);
             this.map.getTile(direction.getX(), direction.getY()).setEntity(player);
-
-//            Building building2 = this.map.getTile(direction.getX(), direction.getY()).getBuilding();
-//            if (building2 != null && !building2.sameTeam(player)) {
-//                throw new RuntimeException("ERRORORORO");
-//            }
 
             player.setX(direction.getX());
             player.setY(direction.getY());
@@ -448,5 +448,75 @@ public class Game {
 
         spawnResources();
         changeWeights();
+    }
+
+    public static void main(String[] args) {
+
+        // todo evey round calculate scoreboard for all objects
+        //  then if want to find score for direction check
+        //  check scoreboard if has calculated if has then no need to recalculate
+        //  clear scoreboard after every tick
+
+        Random random = new Random(0);
+        Map map = new Map(150, 150, random);
+
+        TeamConfig teamConfig = new TeamConfig(
+                1,
+                1,
+                1,
+                1,
+                2,
+                1);
+
+        Team blue = new Team(BLUE, teamConfig);
+        Team red = new Team(RED, teamConfig);
+
+        List<Entity> entities = new ArrayList<>();
+        entities.add(blue.createPlayer(149, 149, Farmer.class));
+        entities.add(blue.createPlayer(139, 139, Farmer.class));
+        entities.add(red.createPlayer(39, 4, Farmer.class));
+
+        Player player = red.createPlayer(45, 1, Farmer.class);
+
+        entities.add(player);
+
+        entities.addAll(map.getTerrainGeneration().generateResources());
+
+        Game game = new Game(map, entities);
+        System.out.println(game.getResources().size());
+        AllMoveStats allMoveStats = game.getAllMoveStats(player, game.getResources());
+        System.out.println(allMoveStats);
+
+        int x = player.getX();
+        int y = player.getY();
+        for (Direction direction: Game.directions) {
+            int finalx = x + direction.getX();
+            int finaly = y + direction.getY();
+            int total = 0;
+
+            for (Resource resource: game.getResources()) {
+                int move = game.getMap().findPath(finalx,finaly,resource.getX(), resource.getY());
+                if (move != -1) {
+                    Vector vector = Map.decode(move);
+                    total += vector.getDistance();
+                }
+
+            }
+
+            System.out.println(direction.getMoveNumber());
+            System.out.println(total);
+        }
+
+
+        /**
+         * normal
+         * 1521
+         * AllMoveStats(
+         * moveStats1=MoveStats(lowest=4, count=1521, total=341784),
+         * moveStats2=MoveStats(lowest=4, count=1521, total=341816),
+         * moveStats3=MoveStats(lowest=2, count=1521, total=338810),
+         * moveStats4=MoveStats(lowest=2, count=1521, total=338774)
+         * )
+         */
     }
 }

@@ -101,6 +101,9 @@ public class Team {
     public Player createPlayer(int x, int y, Class<?> entityClass) {
         if (entityClass == Farmer.class) {
             addFarmer(1);
+            if (this.teamColor.equals(TeamColor.BLUE)) {
+                return new Farmer(x,y,farmerHealth + 2,this);
+            }
             return new Farmer(x,y,farmerHealth,this);
         } else if (entityClass == Soldier.class) {
             addSoldier(1);
