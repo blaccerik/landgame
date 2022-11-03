@@ -14,6 +14,7 @@ public class Player extends Entity {
     protected final Team team;
     protected final int damageToPlayers;
     protected int lastMove;
+    protected int upDistance;
 
 //    protected final Queue<Integer> lastMoves;
 //    protected final int lastMovesSize = 3;
@@ -23,6 +24,7 @@ public class Player extends Entity {
         this.team = team;
         this.damageToPlayers = damageToPlayers;
         this.lastMove = 0;
+        this.upDistance = 0;
 //        this.lastMoves = new ArrayDeque<>();
 //        for (int i = 0; i < lastMovesSize; i++) {
 //            this.lastMoves.add(0);

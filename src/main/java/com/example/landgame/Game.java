@@ -383,24 +383,15 @@ public class Game {
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
 
-                long s = System.nanoTime();
-
-                int number = this.map.findPath(
-                        player.getX(),
-                        player.getY(),
-                        entity.getX(),
-                        entity.getY());
-
-                long e = System.nanoTime();
-                this.funcTimes[3] += e - s;
-
-                s = System.nanoTime();
+                int number = this.map.findPath(player.getX(), player.getY(), entity.getX(), entity.getY());
 
                 if (number != -1) {
+
                     Vector vector = PathMatrix.decode(number);
                     int distance = vector.getDistance();
                     int move1 = vector.getMove1();
                     int move2 = vector.getMove2();
+
                     for (int i = 1; i <= 4; i++) {
                         if (i == move1 || i == move2) {
                             allMoveStats.addStat(i, distance - 1);
@@ -411,16 +402,116 @@ public class Game {
                     }
                 }
 
-                e = System.nanoTime();
-                this.funcTimes[4] += e - s;
             }
         }
 
+//        AllMoveStats allMoveStats = new AllMoveStats();
+//        for (Entity entity: list) {
+//            if (!entity.sameTeam(player)) {
+//
+//
+//                long s = System.nanoTime();
+//
+//                int number = this.map.findPath(
+//                        player.getX(),
+//                        player.getY(),
+//                        entity.getX(),
+//                        entity.getY());
+//
+//                long e = System.nanoTime();
+//                this.funcTimes[1] += e - s;
+//
+//                if (number != -1) {
+//
+//                    Vector vector = PathMatrix.decode(number);
+//                    int distance = vector.getDistance();
+//                    int move1 = vector.getMove1();
+//                    int move2 = vector.getMove2();
+//
+//
+//                    /*todo fix distance for straight moves
+//                     * X.    X.
+//                     * .. -> ..
+//                     * .o    o.
+//                     * /\ 3  2
+//                     * <- 3  4
+//                     * \/ 4  3
+//                     *
+//                     */
+//                    for (int i = 1; i <= 4; i++) {
+//                        if (i == move1 || i == move2) {
+//                            allMoveStats.addStat(i, distance - 1);
+//                        } else {
+//                            allMoveStats.addStat(i, distance + 1);
+//                        }
+//
+//                    }
+//                }
+//
+//            }
+//        }
+//        long s = System.nanoTime();
+//        int[] a = this.map.getEnds(player.getX(), player.getY());
+//        int number = 0;
+//        for (Entity entity: list) {
+//            if (!entity.sameTeam(player)) {
+//                number = a[entity.getX() + entity.getY() * 150];
+//            }
+//        }
+//        long e = System.nanoTime();
+//        this.funcTimes[2] += e - s;
+//        this.funcTimes[3] = number;
         return allMoveStats;
     }
 
     private boolean canBuild(int x, int y) {
         return this.map.getTile(x,y).getBuilding() == null;
+    }
+
+    public int test0(int index, Player player) {
+
+        int[] array = this.map.getEnds(player.getX(), player.getY());
+        for (int i = index + 1; i < this.players.size(); i++) {
+            Player player2 = this.players.get(i);
+            if (!player.sameTeam(player2)) {
+                int number = array[player2.getX() + 150 * player2.getY()];
+                if (number == -2) {
+                    number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
+                }
+                int d = Map.decode(number).getDistance();
+                player.setUpDistance(player.getUpDistance() + d);
+                player2.setUpDistance(player2.getUpDistance() + d);
+            }
+        }
+        return player.getUpDistance();
+    }
+
+    public int test(int index, Player player) {
+        for (int i = index + 1; i < this.players.size(); i++) {
+            Player player2 = this.players.get(i);
+            if (!player.sameTeam(player2)) {
+                int number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
+                int d = Map.decode(number).getDistance();
+                player.setUpDistance(player.getUpDistance() + d);
+                player2.setUpDistance(player2.getUpDistance() + d);
+            }
+        }
+        return player.getUpDistance();
+    }
+
+    public int test2(Player player) {
+
+        int a = 0;
+
+        for (int i = 0; i < this.players.size(); i++) {
+            Player player2 = this.players.get(i);
+            if (!player.sameTeam(player2)) {
+                int number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
+                int d = Map.decode(number).getDistance();
+                a += d;
+            }
+        }
+        return a;
     }
 
     public void tick() {
@@ -434,59 +525,82 @@ public class Game {
         long s;
         long e;
 
-        int test = 0;
+        int check = 0;
         int pla = this.players.size();
         int res = this.resources.size();
 
-        s = System.currentTimeMillis();
-
         for (Player player: this.players) {
             for (Player player2: this.players) {
-                if (!player.sameTeam(player2)) {
-
-                    int number = this.map.findPath(
-                            player.getX(),
-                            player.getY(),
-                            player2.getX(),
-                            player2.getY());
-
-                    test += number;
-                }
-            }
-
-            for (Resource resource: this.resources) {
-                if (!resource.sameTeam(player)) {
-
-                    int number = this.map.findPath(
-                            player.getX(),
-                            player.getY(),
-                            resource.getX(),
-                            resource.getY());
-
-                    test += number;
-                }
+                check += this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
             }
         }
 
-        e = System.currentTimeMillis();
-        if (globalTime) {
-            this.funcTimes[1] += e - s;
-        }
+        int test = 0;
+        int test2 = 0;
+        int test0 = 0;
+
 
         s = System.currentTimeMillis();
-
+        for (int index = 0; index < this.players.size(); index++) {
+            Player player = this.players.get(index);
+            test += test(index, player);
+        }
         for (Player player: this.players) {
-            for (Player player2: this.players) {
-                if (!player.sameTeam(player2)) {
-                    test += player.getX();
-                }
-            }
+            player.setUpDistance(0);
         }
-
         e = System.currentTimeMillis();
-        if (globalTime) {
-            this.funcTimes[2] += e - s;
+        this.funcTimes[1] += e - s;
+
+        s = System.currentTimeMillis();
+        for (int index = 0; index < this.players.size(); index++) {
+            Player player = this.players.get(index);
+            test2 += test2(player);
         }
+        e = System.currentTimeMillis();
+        this.funcTimes[2] += e - s;
+
+        s = System.currentTimeMillis();
+        for (int index = 0; index < this.players.size(); index++) {
+            Player player = this.players.get(index);
+            test0 += test0(index, player);
+        }
+        for (Player player: this.players) {
+            player.setUpDistance(0);
+        }
+        e = System.currentTimeMillis();
+        this.funcTimes[3] += e - s;
+
+        //todo
+        // add static object val tables
+        // int[] > sum(n) > n**2
+
+//        for (Player player: this.players) {
+//            for (Player player2: this.players) {
+//                if (!player.sameTeam(player2)) {
+//
+//                    int number = this.map.findPath(
+//                            player.getX(),
+//                            player.getY(),
+//                            player2.getX(),
+//                            player2.getY());
+//
+//                    test += number;
+//                }
+//            }
+//
+//            for (Resource player2: this.resources) {
+//                if (!player2.sameTeam(player)) {
+//
+//                    int number = this.map.findPath(
+//                            player.getX(),
+//                            player.getY(),
+//                            player2.getX(),
+//                            player2.getY());
+//
+//                    test += number;
+//                }
+//            }
+//        }
 
         tick++;
         for (Player player: this.players) {
@@ -535,77 +649,87 @@ public class Game {
         spawnResources();
         changeWeights();
         System.out.println(Arrays.toString(this.funcTimes));
-        System.out.println(test + " " + pla + " " + res);
+        System.out.println(check + " " + pla + " " + res);
+        if (!(test == test0 && test == test2)) {
+            throw new RuntimeException(test + " " + test0 + " " + test2);
+        }
         Arrays.fill(this.funcTimes, 0);
     }
 
     public static void main(String[] args) {
 
-        // todo evey round calculate scoreboard for all objects
-        //  then if want to find score for direction check
-        //  check scoreboard if has calculated if has then no need to recalculate
-        //  clear scoreboard after every tick
+//        // todo evey round calculate scoreboard for all objects
+//        //  then if want to find score for direction check
+//        //  check scoreboard if has calculated if has then no need to recalculate
+//        //  clear scoreboard after every tick
+//
+//        Random random = new Random(0);
+//        Map map = new Map(150, 150, random);
+//
+//        TeamConfig teamConfig = new TeamConfig(
+//                1,
+//                1,
+//                1,
+//                1,
+//                2,
+//                1);
+//
+//        Team blue = new Team(BLUE, teamConfig);
+//        Team red = new Team(RED, teamConfig);
+//
+//        List<Entity> entities = new ArrayList<>();
+//        entities.add(blue.createPlayer(149, 149, Farmer.class));
+//        entities.add(blue.createPlayer(139, 139, Farmer.class));
+//        entities.add(red.createPlayer(39, 4, Farmer.class));
+//
+//        Player player = red.createPlayer(45, 1, Farmer.class);
+//
+//        entities.add(player);
+//
+//        entities.addAll(map.getTerrainGeneration().generateResources());
+//
+//        Game game = new Game(map, entities);
+//        System.out.println(game.getResources().size());
+//        AllMoveStats allMoveStats = game.getAllMoveStats(player, game.getResources());
+//        System.out.println(allMoveStats);
+//
+//        int x = player.getX();
+//        int y = player.getY();
+//        for (Direction direction: Game.directions) {
+//            int finalx = x + direction.getX();
+//            int finaly = y + direction.getY();
+//            int total = 0;
+//
+//            for (Resource resource: game.getResources()) {
+//                int move = game.getMap().findPath(finalx,finaly,resource.getX(), resource.getY());
+//                if (move != -1) {
+//                    Vector vector = Map.decode(move);
+//                    total += vector.getDistance();
+//                }
+//
+//            }
+//
+//            System.out.println(direction.getMoveNumber());
+//            System.out.println(total);
+//        }
+//
+//
+//        /**
+//         * normal
+//         * 1521
+//         * AllMoveStats(
+//         * moveStats1=MoveStats(lowest=4, count=1521, total=341784),
+//         * moveStats2=MoveStats(lowest=4, count=1521, total=341816),
+//         * moveStats3=MoveStats(lowest=2, count=1521, total=338810),
+//         * moveStats4=MoveStats(lowest=2, count=1521, total=338774)
+//         * )
+//         */
 
-        Random random = new Random(0);
-        Map map = new Map(150, 150, random);
 
-        TeamConfig teamConfig = new TeamConfig(
-                1,
-                1,
-                1,
-                1,
-                2,
-                1);
-
-        Team blue = new Team(BLUE, teamConfig);
-        Team red = new Team(RED, teamConfig);
-
-        List<Entity> entities = new ArrayList<>();
-        entities.add(blue.createPlayer(149, 149, Farmer.class));
-        entities.add(blue.createPlayer(139, 139, Farmer.class));
-        entities.add(red.createPlayer(39, 4, Farmer.class));
-
-        Player player = red.createPlayer(45, 1, Farmer.class);
-
-        entities.add(player);
-
-        entities.addAll(map.getTerrainGeneration().generateResources());
-
-        Game game = new Game(map, entities);
-        System.out.println(game.getResources().size());
-        AllMoveStats allMoveStats = game.getAllMoveStats(player, game.getResources());
-        System.out.println(allMoveStats);
-
-        int x = player.getX();
-        int y = player.getY();
-        for (Direction direction: Game.directions) {
-            int finalx = x + direction.getX();
-            int finaly = y + direction.getY();
-            int total = 0;
-
-            for (Resource resource: game.getResources()) {
-                int move = game.getMap().findPath(finalx,finaly,resource.getX(), resource.getY());
-                if (move != -1) {
-                    Vector vector = Map.decode(move);
-                    total += vector.getDistance();
-                }
-
+        for (int i = 0; i < 10; i++) {
+            for (int j = i + 1; j < 10; j++) {
+                System.out.println(i + " " + j);
             }
-
-            System.out.println(direction.getMoveNumber());
-            System.out.println(total);
         }
-
-
-        /**
-         * normal
-         * 1521
-         * AllMoveStats(
-         * moveStats1=MoveStats(lowest=4, count=1521, total=341784),
-         * moveStats2=MoveStats(lowest=4, count=1521, total=341816),
-         * moveStats3=MoveStats(lowest=2, count=1521, total=338810),
-         * moveStats4=MoveStats(lowest=2, count=1521, total=338774)
-         * )
-         */
     }
 }

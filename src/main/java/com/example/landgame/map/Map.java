@@ -61,12 +61,9 @@ public class Map {
 //                this.terrain[i][j] = new Terrain(i,j, TerrainType.LAND);
 //            }
 //        }
-//        this.coords = new int[width * height * width * height];
-//        for (int i = 0; i < this.coords.length; i++) {
-//            this.coords[i] = -2;
-//        }
-//        Arrays.fill(this.coords, -2);
 
+//        this.coords = new int[width * height * width * height];
+//        Arrays.fill(this.coords, -2);
         this.matrix = new int[width * height][width * height];
         for (int i = 0; i < width * height; i++) {
             for (int j = 0; j < width * height; j++) {
@@ -79,20 +76,27 @@ public class Map {
         return this.terrain[x][y];
     }
 
-    public int getMoveNumber(int xs, int ys, int xe, int ye) {
+    private int getMoveNumber(int xs, int ys, int xe, int ye) {
         final int shift = this.height * this.width;
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
 //        return this.coords[coords + coorde * shift];
         return this.matrix[coords][coorde];
+//        return this.matrix[coorde][coords];
     }
 
-    public void setMoveNumber(int xs, int ys, int xe, int ye, int moveNumber) {
+    public int[] getEnds(int xs, int ys) {
+        int coords = xs + ys * this.height;
+        return this.matrix[coords];
+    }
+
+    private void setMoveNumber(int xs, int ys, int xe, int ye, int moveNumber) {
         final int shift = this.height * this.width;
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
 //        this.coords[coords + coorde * shift] = moveNumber;
         this.matrix[coords][coorde] = moveNumber;
+//        this.matrix[coorde][coords] = moveNumber;
     }
 
     private boolean isOut(int x, int y) {
@@ -225,25 +229,26 @@ public class Map {
 
 
         int a = 0;
-//        for (int iter = 0; iter < 150; iter++) {
-//            for (int i = 0; i < size; i++) {
-//                a += map.findPath(47,47, iter,i);
-//            }
-//        }
 
         long s = System.currentTimeMillis();
         Random random1 = new Random();
+//        int[] test = map.getEnds(47,47);
+//        map.findPath(47,47,47,47);
         for (int i = 0; i < 100000; i++) {
             int x = random1.nextInt(150);
             int y = random1.nextInt(150);
-            a += map.findPath(47,47, x, y);
+//            a += test[x + 150 * y];
+            a += map.findPath(x, y, 47, 47);
         }
 
         long e = System.currentTimeMillis();
         System.out.println("time: " + (e - s));
         System.out.println(a);
-        // 1d: 17.9 17.1 18.5
-        // 2d: 50.1
+        // 426903505
+        // 408891472
+        // 1d: 41 57
+        // 2d: 30
+        // 2d-one: 31
 
 //        System.out.println(map.getHeight());
 //        map.findPath()
