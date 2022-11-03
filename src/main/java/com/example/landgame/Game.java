@@ -28,6 +28,7 @@ import lombok.ToString;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,6 +109,8 @@ class AllMoveStats {
 public class Game {
 
     public static final boolean globalCheck = true;
+    public static final boolean globalTime = true;
+    long[] funcTimes = new long[5];
 
     // for testing only
 
@@ -375,14 +378,24 @@ public class Game {
     }
 
     private <T extends Entity> AllMoveStats getAllMoveStats(Player player, List<T> list) {
+
         AllMoveStats allMoveStats = new AllMoveStats();
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
+
+                long s = System.nanoTime();
+
                 int number = this.map.findPath(
                         player.getX(),
                         player.getY(),
                         entity.getX(),
                         entity.getY());
+
+                long e = System.nanoTime();
+                this.funcTimes[3] += e - s;
+
+                s = System.nanoTime();
+
                 if (number != -1) {
                     Vector vector = PathMatrix.decode(number);
                     int distance = vector.getDistance();
@@ -397,8 +410,12 @@ public class Game {
 
                     }
                 }
+
+                e = System.nanoTime();
+                this.funcTimes[4] += e - s;
             }
         }
+
         return allMoveStats;
     }
 
@@ -414,18 +431,86 @@ public class Game {
          * A1 should make another random move
          */
 
+        long s;
+        long e;
+
+        int test = 0;
+        int pla = this.players.size();
+        int res = this.resources.size();
+
+        s = System.currentTimeMillis();
+
+        for (Player player: this.players) {
+            for (Player player2: this.players) {
+                if (!player.sameTeam(player2)) {
+
+                    int number = this.map.findPath(
+                            player.getX(),
+                            player.getY(),
+                            player2.getX(),
+                            player2.getY());
+
+                    test += number;
+                }
+            }
+
+            for (Resource resource: this.resources) {
+                if (!resource.sameTeam(player)) {
+
+                    int number = this.map.findPath(
+                            player.getX(),
+                            player.getY(),
+                            resource.getX(),
+                            resource.getY());
+
+                    test += number;
+                }
+            }
+        }
+
+        e = System.currentTimeMillis();
+        if (globalTime) {
+            this.funcTimes[1] += e - s;
+        }
+
+        s = System.currentTimeMillis();
+
+        for (Player player: this.players) {
+            for (Player player2: this.players) {
+                if (!player.sameTeam(player2)) {
+                    test += player.getX();
+                }
+            }
+        }
+
+        e = System.currentTimeMillis();
+        if (globalTime) {
+            this.funcTimes[2] += e - s;
+        }
+
         tick++;
         for (Player player: this.players) {
+
             List<Direction> legalMoves = getLegalMovesForPlayer(player);
+
             // if only 1 move then make it
             if (legalMoves.size() == 1) {
                 Direction direction = legalMoves.get(0);
                 makeMove(player, direction);
             } else if (legalMoves.size() > 1) {
 
+
+                s = System.currentTimeMillis();
+
                 AllMoveStats enemyStats = getAllMoveStats(player, this.players);
                 AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
                 AllMoveStats resourceStats = getAllMoveStats(player, this.resources);
+
+                e = System.currentTimeMillis();
+                if (globalTime) {
+                    this.funcTimes[0] += e - s;
+                }
+
                 boolean canBuild = canBuild(player.getX(), player.getY());
 
                 Direction bestMove = player.getTeam().getBestMove(
@@ -440,6 +525,7 @@ public class Game {
                 makeMove(player, bestMove);
             }
         }
+
         cleanup();
 
         for (Building building : this.buildings) {
@@ -448,6 +534,9 @@ public class Game {
 
         spawnResources();
         changeWeights();
+        System.out.println(Arrays.toString(this.funcTimes));
+        System.out.println(test + " " + pla + " " + res);
+        Arrays.fill(this.funcTimes, 0);
     }
 
     public static void main(String[] args) {
