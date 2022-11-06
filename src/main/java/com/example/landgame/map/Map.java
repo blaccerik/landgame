@@ -11,6 +11,8 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.Random;
 
+import static com.example.landgame.enums.TerrainType.LAND;
+
 
 @Getter
 public class Map {
@@ -26,12 +28,24 @@ public class Map {
 //    private final int[] coords;
     private final TerrainGeneration terrainGeneration;
 
-    public Map(int width, int height, Random random) {
+    public Map(int width, int height, int seed) {
         this.width = width;
         this.height = height;
-        this.random = random;
+        this.random = new Random(seed);
         this.terrainGeneration = new TerrainGeneration(this.random, width, height);
-        this.terrain = terrainGeneration.generateTerrain();
+
+        if (seed == 69) {
+            this.terrain = new Terrain[width][height];
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
+                    Terrain terrain1 = new Terrain(i, j, LAND);
+                    terrain[i][j] = terrain1;
+                }
+            }
+        } else {
+            this.terrain = this.terrainGeneration.generateTerrain();
+        }
+
 
         int a = 0;
         for (int i = 0; i < this.width; i++) {
@@ -212,10 +226,8 @@ public class Map {
     }
 
     public static void main(String[] args) {
-        Random random = new Random();
-        random.setSeed(0);
         int size = 150;
-        Map map = new Map(size, size, random);
+        Map map = new Map(size, size, 0);
 
 
         int a = 0;

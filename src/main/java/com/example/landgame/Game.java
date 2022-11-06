@@ -91,9 +91,9 @@ class AllMoveStats {
 
         for (int i = 1; i <= 4; i++) {
             if (i == move1 || i == move2) {
-                get(i).addDistance(distance + 1);
-            } else {
                 get(i).addDistance(distance - 1);
+            } else {
+                get(i).addDistance(distance + 1);
             }
 
         }
@@ -106,9 +106,9 @@ class AllMoveStats {
 
         for (int i = 1; i <= 4; i++) {
             if (i == move1 || i == move2) {
-                get(i).removeDistance(distance + 1);
-            } else {
                 get(i).removeDistance(distance - 1);
+            } else {
+                get(i).removeDistance(distance + 1);
             }
 
         }
@@ -199,6 +199,7 @@ public class Game {
     public final static float goodScore = 1000000;
 
     private final AllMoveStats[][] staticObjectCache;
+    private int nr = 0;
 
 
 
@@ -288,6 +289,7 @@ public class Game {
 //                }
             }
         }
+        nr++;
         this.resources.add(resource);
     }
 
@@ -296,10 +298,15 @@ public class Game {
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
                 int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                Vector vector = Map.decode(n);
-                this.staticObjectCache[i][j].removeVector(vector);
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    this.staticObjectCache[i][j].removeVector(vector);
+                }
+
             }
         }
+        this.resources.remove(resource);
+        this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
     }
 
     private void makeMove(Player player, Direction direction) {
@@ -617,14 +624,17 @@ public class Game {
         for (Resource resource: this.resources) {
             int number = this.map.findPath(player.getX(), player.getY(), resource.getX(), resource.getY());
             Vector vector = Map.decode(number);
-            if (vector.getMove1() == 1) {
-                a += vector.getDistance();
+            if (vector.getMove1() == 1 || vector.getMove2() == 1) {
+                a += vector.getDistance() - 1;
+            } else {
+                a += vector.getDistance() + 1;
             }
         }
         return a;
     }
 
     public int test_res_cache(Player player) {
+//        System.out.println(this.staticObjectCache[player.getX()][player.getY()].get(1));
         return this.staticObjectCache[player.getX()][player.getY()].get(1).getTotal();
     }
 
@@ -691,23 +701,36 @@ public class Game {
         int res2 = 0;
 
         s = System.nanoTime();
+
+//        System.out.println("start----");
+
         for (Player player: this.players) {
-            res1 += test_res_default(player);
+            int a = test_res_default(player);
+//            System.out.println(player + " " + a);
+            res1 += a;
         }
         e = System.nanoTime();
         this.funcTimes[4] += e - s;
 
+//        System.out.println("------");
+
         s = System.nanoTime();
         for (Player player: this.players) {
-            res2 += test_res_cache(player);
+            int a = test_res_cache(player);
+//            System.out.println(player + " " + a);
+            res2 += a;
         }
 
         e = System.nanoTime();
         this.funcTimes[5] += e - s;
 
+//        System.out.println(this.resources.size());
+//        System.out.println(nr);
+//        System.out.println("-----");
         if (res1 != res2) {
             throw new RuntimeException(res1 + " " + res2);
         }
+
 
 
 //        s = System.currentTimeMillis();

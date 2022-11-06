@@ -44,11 +44,8 @@ public class MainApplication extends javafx.application.Application {
         hBox.setStyle("-fx-background-color: #f8f802; ");
 
         // generate map
-        Random random = new Random();
-        random.setSeed(0);
         int size = 150;
-
-        Map map = new Map(size, size, random);
+        Map map = new Map(size, size, 0);
 
         canvas = new Canvas(map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
 
@@ -116,7 +113,9 @@ public class MainApplication extends javafx.application.Application {
 //                    long end_time = System.currentTimeMillis();
 //                    double difference = (end_time - start_time);
 ////                    System.out.println("That took " + difference + " milliseconds");
-                    lastUpdate = now;
+//                    lastUpdate = now;
+                    lastUpdate = 9555_555_555L;
+
                     renderer.render(game.getMap());
                     renderer.upDateStats(game);
                 }

@@ -1,7 +1,12 @@
 package com.example.landgame;
 
 
+import com.example.landgame.config.TeamConfig;
+import com.example.landgame.map.Map;
+import com.example.landgame.objects.Entity;
+import com.example.landgame.objects.Farmer;
 import com.google.gson.Gson;
+import javafx.scene.canvas.Canvas;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,6 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.example.landgame.enums.TeamColor.BLUE;
+import static com.example.landgame.enums.TeamColor.GREEN;
+import static com.example.landgame.enums.TeamColor.RED;
+
 
 @Getter
 @AllArgsConstructor
@@ -30,7 +39,31 @@ public class Test {
 
     public static void main(String[] args) throws IOException {
 
-        AllMoveStats allMoveStats = new AllMoveStats();
+        int size = 150;
+        Map map = new Map(size, size, 0);
+
+        TeamConfig teamConfig = new TeamConfig(
+                3,
+                10,
+                1,
+                301,
+                2,
+                1);
+        Team blue = new Team(BLUE, teamConfig);
+        Team red = new Team(RED, teamConfig);
+        Team green = new Team(GREEN, teamConfig);
+
+        List<Entity> entities = new ArrayList<>();
+        entities.add(blue.createPlayer(149, 149, Farmer.class));
+        entities.add(blue.createPlayer(139, 139, Farmer.class));
+        entities.add(red.createPlayer(39, 4, Farmer.class));
+        entities.add(red.createPlayer(55, 1, Farmer.class));
+        entities.add(green.createPlayer(149, 0, Farmer.class));
+        entities.addAll(map.getTerrainGeneration().generateResources());
+
+        Game game = new Game(map, entities);
+        game.tick();
+
 //        List<Integer> list = new ArrayList<>();
 //        list.add(1);
 //        list.add(2);
