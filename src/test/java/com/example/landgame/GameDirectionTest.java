@@ -35,12 +35,20 @@ public class GameDirectionTest {
         Team green = new Team(GREEN, teamConfig);
 
         List<Entity> entities = new ArrayList<>();
-        entities.add(blue.createPlayer(142, 142, Farmer.class));
-        entities.add(blue.createPlayer(140, 140, Farmer.class));
-        entities.add(new Stone(141,141,10));
-        entities.add(new Stone(141,142,10));
+        // 2500
+        for (int i = 0; i < 50; i++) {
+            for (int j = 0; j < 50; j++) {
+                entities.add(blue.createPlayer(i,j,Farmer.class));
+            }
+        }
+        // 1000
+        for (int i = 100; i < 120; i++) {
+            for (int j = 100; j < 150; j++) {
+                entities.add(new Stone(i,j,100));
+            }
+        }
         Game game = new Game(map, entities);
-
+        game.tick();
         game.tick();
 
     }
