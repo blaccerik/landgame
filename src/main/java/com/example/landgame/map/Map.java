@@ -76,6 +76,18 @@ public class Map {
         }
     }
 
+    public int getHash() {
+        int finalHash = 0;
+        for (int i = 0; i < this.terrain.length; i++) {
+            for (int j = 0; j < this.terrain.length; j++) {
+                if (this.terrain[i][j].getEntity() != null) {
+                    finalHash += i + j * this.terrain.length;
+                }
+            }
+        }
+        return finalHash;
+    }
+
     public Terrain getTile(int x, int y) {
         return this.terrain[x][y];
     }

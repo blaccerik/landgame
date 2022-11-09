@@ -56,9 +56,9 @@ public class MainApplication extends javafx.application.Application {
                 301,
                 2,
                 1);
-        Team blue = new Team(BLUE, teamConfig);
-        Team red = new Team(RED, teamConfig);
-        Team green = new Team(GREEN, teamConfig);
+        Team blue = new Team(BLUE, teamConfig, 0);
+        Team red = new Team(RED, teamConfig, 0);
+        Team green = new Team(GREEN, teamConfig, 0);
 
         List<Entity> entities = new ArrayList<>();
         entities.add(blue.createPlayer(149, 149, Farmer.class));

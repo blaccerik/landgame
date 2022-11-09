@@ -37,8 +37,7 @@ import static com.example.landgame.config.Config.*;
 class MoveStats {
 
 
-    public static final int SIZE = 400;
-
+//    public static final int SIZE = 400;
 //    private int score;
     private int lowest;
     private int count;
@@ -46,13 +45,14 @@ class MoveStats {
 
     // index is distance
     // value is count
-    private int[] queue;
+//    private int[] queue;
 
     public MoveStats() {
         this.count = 0;
         this.total = 0;
-        this.lowest = SIZE;
-        this.queue = new int[SIZE];
+        this.lowest = 1000;
+//        this.lowest = SIZE;
+//        this.queue = new int[SIZE];
     }
 
     public void addDistance(int distance) {
@@ -61,27 +61,27 @@ class MoveStats {
         }
         this.count++;
         this.total += distance;
-        this.queue[distance]++;
+//        this.queue[distance]++;
 //        this.score += (float) 1 / (sum * sum);
     }
 
-    public void removeDistance(int distance) {
-        // there might be new lowest
-        this.count--;
-        this.total -= distance;
-        this.queue[distance]--;
-        if (distance == lowest && this.queue[distance] == 0) {
-            int best = SIZE;
-            for (int i = distance; i < SIZE; i++) {
-                int n = this.queue[i];
-                if (n < best) {
-                    best = n;
-                    break;
-                }
-            }
-            this.lowest = best;
-        }
-    }
+//    public void removeDistance(int distance) {
+//        // there might be new lowest
+//        this.count--;
+//        this.total -= distance;
+//        this.queue[distance]--;
+//        if (distance == lowest && this.queue[distance] == 0) {
+//            int best = SIZE;
+//            for (int i = distance; i < SIZE; i++) {
+//                int n = this.queue[i];
+//                if (n < best) {
+//                    best = n;
+//                    break;
+//                }
+//            }
+//            this.lowest = best;
+//        }
+//    }
 
 
     public float getScore() {
@@ -124,20 +124,20 @@ class AllMoveStats {
         }
     }
 
-    public void removeVector(Vector vector) {
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-
-        for (int i = 1; i <= 4; i++) {
-            if (i == move1 || i == move2) {
-                get(i).removeDistance(distance - 1);
-            } else {
-                get(i).removeDistance(distance + 1);
-            }
-
-        }
-    }
+//    public void removeVector(Vector vector) {
+//        int distance = vector.getDistance();
+//        int move1 = vector.getMove1();
+//        int move2 = vector.getMove2();
+//
+//        for (int i = 1; i <= 4; i++) {
+//            if (i == move1 || i == move2) {
+//                get(i).removeDistance(distance - 1);
+//            } else {
+//                get(i).removeDistance(distance + 1);
+//            }
+//
+//        }
+//    }
 
 //    private void add(int i, int distance) {
 //        switch (i) {
@@ -183,20 +183,6 @@ public class Game {
     public static final boolean globalTime = true;
     long[] funcTimes = new long[8];
 
-    // for testing only
-
-//    public AllMoveStats getEnemyStats(Player player) {
-//        return getAllMoveStats(player, this.players);
-//    }
-//
-//    public AllMoveStats getBuildingStats(Player player) {
-//        return getAllMoveStats(player, this.buildings);
-//    }
-//
-//    public AllMoveStats getResourceStats(Player player) {
-//        return getAllMoveStats(player, this.resources);
-//    }
-
     public static final boolean debug = false;
 
     public static final Direction[] directions = new Direction[]{
@@ -226,6 +212,8 @@ public class Game {
     private final AllMoveStats[][] staticObjectCache;
     private int nr = 0;
 
+    private final Random random;
+
 
 
     private final Map map;
@@ -235,7 +223,7 @@ public class Game {
      */
     public Game(Map map, List<Entity> entities) {
         this.map = map;
-
+        this.random = map.getRandom();
         this.players = new ArrayList<>();
         this.resources = new ArrayList<>();
         this.buildings = new ArrayList<>();
@@ -248,6 +236,7 @@ public class Game {
         }
 
         List<Team> teams = putEntities(entities);
+
         this.teams = new Team[teams.size()];
         teams.toArray(this.teams);
     }
@@ -292,44 +281,44 @@ public class Game {
 
     private void addResource(Resource resource) {
         // find direction stats for that res
-        for (int i = 0; i < this.map.getWidth(); i++) {
-            for (int j = 0; j < this.map.getHeight(); j++) {
-                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                if (n != -1) {
-                    Vector vector = Map.decode(n);
-                    this.staticObjectCache[i][j].addVector(vector);
-                }
-
-//                int distance = vector.getDistance();
-//                int move1 = vector.getMove1();
-//                int move2 = vector.getMove2();
-//
-//                for (int i = 1; i <= 4; i++) {
-//                    if (i == move1 || i == move2) {
-//                        allMoveStats.addStat(i, distance - 1);
-//                    } else {
-//                        allMoveStats.addStat(i, distance + 1);
-//                    }
-//
+//        for (int i = 0; i < this.map.getWidth(); i++) {
+//            for (int j = 0; j < this.map.getHeight(); j++) {
+//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+//                if (n != -1) {
+//                    Vector vector = Map.decode(n);
+//                    this.staticObjectCache[i][j].addVector(vector);
 //                }
-            }
-        }
+//
+////                int distance = vector.getDistance();
+////                int move1 = vector.getMove1();
+////                int move2 = vector.getMove2();
+////
+////                for (int i = 1; i <= 4; i++) {
+////                    if (i == move1 || i == move2) {
+////                        allMoveStats.addStat(i, distance - 1);
+////                    } else {
+////                        allMoveStats.addStat(i, distance + 1);
+////                    }
+////
+////                }
+//            }
+//        }
         nr++;
         this.resources.add(resource);
     }
 
     private void removeResource(Resource resource) {
-        // remove distance
-        for (int i = 0; i < this.map.getWidth(); i++) {
-            for (int j = 0; j < this.map.getHeight(); j++) {
-                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                if (n != -1) {
-                    Vector vector = Map.decode(n);
-                    this.staticObjectCache[i][j].removeVector(vector);
-                }
-
-            }
-        }
+//        // remove distance
+//        for (int i = 0; i < this.map.getWidth(); i++) {
+//            for (int j = 0; j < this.map.getHeight(); j++) {
+//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+//                if (n != -1) {
+//                    Vector vector = Map.decode(n);
+//                    this.staticObjectCache[i][j].removeVector(vector);
+//                }
+//
+//            }
+//        }
         this.resources.remove(resource);
         this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
     }
@@ -409,9 +398,8 @@ public class Game {
 
     private void spawnResources() {
         if (tick - lastStoneSpawn > stoneSpawnRate) {
-            Random random = new Random();
-            int x = random.nextInt(this.map.getWidth());
-            int y = random.nextInt(this.map.getHeight());
+            int x = this.random.nextInt(this.map.getWidth());
+            int y = this.random.nextInt(this.map.getHeight());
             if (this.map.canResourceSpawn(x,y)) {
                 lastStoneSpawn = tick;
                 Stone resource = new Stone(x,y,stoneHealth);
@@ -421,9 +409,8 @@ public class Game {
             }
         }
         if (tick - lastTreeSpawn > treeSpawnRate) {
-            Random random = new Random();
-            int x = random.nextInt(this.map.getWidth());
-            int y = random.nextInt(this.map.getHeight());
+            int x = this.random.nextInt(this.map.getWidth());
+            int y = this.random.nextInt(this.map.getHeight());
             if (this.map.canResourceSpawn(x,y)) {
                 lastTreeSpawn = tick;
                 Tree resource = new Tree(x,y,treeHealth);
@@ -433,9 +420,8 @@ public class Game {
         }
 
         if (tick - lastGoldSpawn > goldSpawnRate) {
-            Random random = new Random();
-            int x = random.nextInt(this.map.getWidth());
-            int y = random.nextInt(this.map.getHeight());
+            int x = this.random.nextInt(this.map.getWidth());
+            int y = this.random.nextInt(this.map.getHeight());
             if (this.map.canResourceSpawn(x,y)) {
                 lastGoldSpawn = tick;
                 Gold resource = new Gold(x,y,goldHealth);
@@ -674,56 +660,56 @@ public class Game {
         long s;
         long e;
 
-        int check = 0;
-        int pla = this.players.size();
-        int res = this.resources.size();
-
-//        for (Player player: this.players) {
-//            for (Player player2: this.players) {
-//                check += this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
-//            }
-//        }
+//        int check = 0;
+//        int pla = this.players.size();
+//        int res = this.resources.size();
 //
-//        int test = 0;
-//        int test2 = 0;
-//        int test0 = 0;
+////        for (Player player: this.players) {
+////            for (Player player2: this.players) {
+////                check += this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
+////            }
+////        }
+////
+////        int test = 0;
+////        int test2 = 0;
+////        int test0 = 0;
+////
+////        s = System.currentTimeMillis();
+////        for (int index = 0; index < this.players.size(); index++) {
+////            Player player = this.players.get(index);
+////            test += test(index, player);
+////        }
+////        for (Player player: this.players) {
+////            player.setUpDistance(0);
+////        }
+////        e = System.currentTimeMillis();
+////        this.funcTimes[1] += e - s;
+////
+////        s = System.currentTimeMillis();
+////        for (int index = 0; index < this.players.size(); index++) {
+////            Player player = this.players.get(index);
+////            test2 += test2(player);
+////        }
+////        e = System.currentTimeMillis();
+////        this.funcTimes[2] += e - s;
+////
+////        s = System.currentTimeMillis();
+////        for (int index = 0; index < this.players.size(); index++) {
+////            Player player = this.players.get(index);
+////            test0 += test0(index, player);
+////        }
+////        for (Player player: this.players) {
+////            player.setUpDistance(0);
+////        }
+////        e = System.currentTimeMillis();
+////        this.funcTimes[3] += e - s;
 //
-//        s = System.currentTimeMillis();
-//        for (int index = 0; index < this.players.size(); index++) {
-//            Player player = this.players.get(index);
-//            test += test(index, player);
-//        }
-//        for (Player player: this.players) {
-//            player.setUpDistance(0);
-//        }
-//        e = System.currentTimeMillis();
-//        this.funcTimes[1] += e - s;
+//        //todo
+//        // add static object val tables
+//        // int[] > sum(n) > n**2
 //
-//        s = System.currentTimeMillis();
-//        for (int index = 0; index < this.players.size(); index++) {
-//            Player player = this.players.get(index);
-//            test2 += test2(player);
-//        }
-//        e = System.currentTimeMillis();
-//        this.funcTimes[2] += e - s;
-//
-//        s = System.currentTimeMillis();
-//        for (int index = 0; index < this.players.size(); index++) {
-//            Player player = this.players.get(index);
-//            test0 += test0(index, player);
-//        }
-//        for (Player player: this.players) {
-//            player.setUpDistance(0);
-//        }
-//        e = System.currentTimeMillis();
-//        this.funcTimes[3] += e - s;
-
-        //todo
-        // add static object val tables
-        // int[] > sum(n) > n**2
-
-        int res1 = 0;
-        int res2 = 0;
+//        int res1 = 0;
+//        int res2 = 0;
 
 //        s = System.nanoTime();
 //
@@ -810,7 +796,7 @@ public class Game {
 ////            }
 ////        }
 
-        tick++;
+
         for (Player player: this.players) {
 
             List<Direction> legalMoves = getLegalMovesForPlayer(player);
@@ -822,27 +808,13 @@ public class Game {
             } else if (legalMoves.size() > 1) {
 
 
-                s = System.currentTimeMillis();
+                s = System.nanoTime();
 
                 AllMoveStats enemyStats = getAllMoveStats(player, this.players);
                 AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
+                AllMoveStats resourceStats = getAllMoveStats(player, this.resources);
 
-                // get stats from cache
-                AllMoveStats resourceStats2 = getAllMoveStats(player, this.resources);
-                AllMoveStats resourceStats = this.staticObjectCache[player.getX()][player.getY()];
-                for (int i = 1; i <= 4; i++) {
-                    if (resourceStats.get(i).getCount() != resourceStats2.get(i).getCount() ||
-                            resourceStats.get(i).getTotal() != resourceStats2.get(i).getTotal()
-//                            || resourceStats.get(i).getLowest() != resourceStats2.get(i).getLowest()
-                    ) {
-                        throw new RuntimeException("\n" + resourceStats + "\n" + resourceStats2);
-                    }
-                }
-//                System.out.println("------");
-//                System.out.println(resourceStats);
-//                System.out.println(resourceStats2);
-
-                e = System.currentTimeMillis();
+                e = System.nanoTime();
                 if (globalTime) {
                     this.funcTimes[0] += e - s;
                 }
@@ -862,26 +834,42 @@ public class Game {
             }
         }
 
+        s = System.nanoTime();
         cleanup();
+        e = System.nanoTime();
+        if (globalTime) {
+            this.funcTimes[1] += e - s;
+        }
 
         for (Building building : this.buildings) {
             spawnPlayer(building);
         }
 
         s = System.nanoTime();
-        spawnResources();
-        e = System.nanoTime();
-        this.funcTimes[6] += e - s;
 
+        spawnResources();
+
+        e = System.nanoTime();
+        this.funcTimes[2] += e - s;
 
         changeWeights();
-        System.out.println("def cache spawn");
-        System.out.println(Arrays.toString(this.funcTimes));
-        System.out.println(check + " " + pla + " " + res);
-//        if (!(test == test0 && test == test2)) {
-//            throw new RuntimeException(test + " " + test0 + " " + test2);
-//        }
+
+        // stats
+        if (tick % 10 == 0) {
+            System.out.printf("% 5d moveS % 6d clean % 6d spawn % 6d Pla % 6d Res % 6d Ex % 6d h %d\n",
+                    tick,
+                    this.funcTimes[0] / 1_000_000,
+                    this.funcTimes[1] / 1_000_000,
+                    this.funcTimes[2] / 1_000_000,
+                    this.players.size(),
+                    this.resources.size(),
+                    this.map.getExploredTiles(),
+                    this.map.getHash()
+
+            );
+        }
         Arrays.fill(this.funcTimes, 0);
+        tick++;
     }
 
     public static void main(String[] args) {

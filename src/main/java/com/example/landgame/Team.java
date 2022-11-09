@@ -56,13 +56,13 @@ public class Team {
         }
     };
 
-    public Team(TeamColor teamColor, TeamConfig teamConfig) {
+    public Team(TeamColor teamColor, TeamConfig teamConfig, int seed) {
         this.teamColor = teamColor;
         this.enemyMoveWeight = teamConfig.getEnemyMoveWeight();
         this.houseMoveWeight = teamConfig.getHouseMoveWeight();
         this.resourceMoveWeight = teamConfig.getResourceMoveWeight();
         this.teamConfig = teamConfig;
-        this.random = new Random();
+        this.random = new Random(seed);
 
     }
 
