@@ -14,7 +14,6 @@ import com.example.landgame.objects.Tree;
 import com.example.landgame.pathfinding.Direction;
 import com.example.landgame.pathfinding.PathMatrix;
 import com.example.landgame.pathfinding.Vector;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,26 +32,31 @@ import static com.example.landgame.config.Config.*;
 
 @Getter
 @Setter
-@ToString
+//@ToString
 class MoveStats {
 
+    @Override
+    public String toString() {
+        return " " + this.lowest;
+    }
 
-//    public static final int SIZE = 400;
-//    private int score;
+    public static final int MAX_SIZE = 400;
+    private static final int IF_MAX = 1000;
+
+    //    private int score;
     private int lowest;
     private int count;
     private int total;
 
     // index is distance
     // value is count
-//    private int[] queue;
+    private int[] queue;
 
     public MoveStats() {
         this.count = 0;
         this.total = 0;
-        this.lowest = 1000;
-//        this.lowest = SIZE;
-//        this.queue = new int[SIZE];
+        this.lowest = IF_MAX;
+        this.queue = new int[MAX_SIZE];
     }
 
     public void addDistance(int distance) {
@@ -61,27 +65,28 @@ class MoveStats {
         }
         this.count++;
         this.total += distance;
-//        this.queue[distance]++;
+        this.queue[distance]++;
 //        this.score += (float) 1 / (sum * sum);
     }
 
-//    public void removeDistance(int distance) {
-//        // there might be new lowest
-//        this.count--;
-//        this.total -= distance;
-//        this.queue[distance]--;
-//        if (distance == lowest && this.queue[distance] == 0) {
-//            int best = SIZE;
-//            for (int i = distance; i < SIZE; i++) {
-//                int n = this.queue[i];
-//                if (n < best) {
-//                    best = n;
-//                    break;
-//                }
-//            }
-//            this.lowest = best;
-//        }
-//    }
+    public void removeDistance(int distance) {
+        // there might be new lowest
+        this.count--;
+        this.total -= distance;
+        this.queue[distance]--;
+        if (distance == this.lowest && this.queue[distance] == 0) {
+
+            int best = IF_MAX;
+            for (int i = distance; i < MAX_SIZE; i++) {
+                int n = this.queue[i];
+                if (n < best && n != 0) {
+                    best = i;
+                    break;
+                }
+            }
+            this.lowest = best;
+        }
+    }
 
 
     public float getScore() {
@@ -97,16 +102,16 @@ class MoveStats {
 @Getter
 @ToString
 class AllMoveStats {
-    private final MoveStats moveStats1;
-    private final MoveStats moveStats2;
-    private final MoveStats moveStats3;
-    private final MoveStats moveStats4;
+    private final com.example.landgame.MoveStats moveStats1;
+    private final com.example.landgame.MoveStats moveStats2;
+    private final com.example.landgame.MoveStats moveStats3;
+    private final com.example.landgame.MoveStats moveStats4;
 
     public AllMoveStats() {
-        this.moveStats1 = new MoveStats();
-        this.moveStats2 = new MoveStats();
-        this.moveStats3 = new MoveStats();
-        this.moveStats4 = new MoveStats();
+        this.moveStats1 = new com.example.landgame.MoveStats();
+        this.moveStats2 = new com.example.landgame.MoveStats();
+        this.moveStats3 = new com.example.landgame.MoveStats();
+        this.moveStats4 = new com.example.landgame.MoveStats();
     }
 
     public void addVector(Vector vector) {
@@ -124,44 +129,22 @@ class AllMoveStats {
         }
     }
 
-//    public void removeVector(Vector vector) {
-//        int distance = vector.getDistance();
-//        int move1 = vector.getMove1();
-//        int move2 = vector.getMove2();
-//
-//        for (int i = 1; i <= 4; i++) {
-//            if (i == move1 || i == move2) {
-//                get(i).removeDistance(distance - 1);
-//            } else {
-//                get(i).removeDistance(distance + 1);
-//            }
-//
-//        }
-//    }
+    public void removeVector(Vector vector) {
+        int distance = vector.getDistance();
+        int move1 = vector.getMove1();
+        int move2 = vector.getMove2();
 
-//    private void add(int i, int distance) {
-//        switch (i) {
-//            case 1:
-//                get()
-//                this.moveStats1.addDistance(distance);
-//                break;
-//            case 2:
-//                this.moveStats2.addDistance(distance);
-//                break;
-//            case 3:
-//                this.moveStats3.addDistance(distance);
-//                break;
-//            case 4:
-//                this.moveStats4.addDistance(distance);
-//                break;
-//        }
-//    }
+        for (int i = 1; i <= 4; i++) {
+            if (i == move1 || i == move2) {
+                get(i).removeDistance(distance - 1);
+            } else {
+                get(i).removeDistance(distance + 1);
+            }
 
-//    public void addStat(int t, int distance) {
-//        get(t).addDistance(distance);
-//    }
-//
-    public MoveStats get(int i) {
+        }
+    }
+
+    public com.example.landgame.MoveStats get(int i) {
         switch (i) {
             case 1:
                 return this.moveStats1;
@@ -200,7 +183,7 @@ public class Game {
     private final List<Building> buildings;
     private final Team[] teams;
     private final Queue<Entity> removeEntities = new ArrayDeque<>();
-//    private final PathMatrix pathMatrix;
+    //    private final PathMatrix pathMatrix;
     private static long tick = 0;
     private static long lastStoneSpawn = 0;
     private static long lastTreeSpawn = 0;
@@ -209,7 +192,7 @@ public class Game {
 
     public final static float goodScore = 1000000;
 
-    private final AllMoveStats[][] staticObjectCache;
+    private final com.example.landgame.AllMoveStats[][] staticObjectCache;
     private int nr = 0;
 
     private final Random random;
@@ -228,15 +211,14 @@ public class Game {
         this.resources = new ArrayList<>();
         this.buildings = new ArrayList<>();
 
-        this.staticObjectCache = new AllMoveStats[this.map.getHeight()][this.map.getWidth()];
+        this.staticObjectCache = new com.example.landgame.AllMoveStats[this.map.getHeight()][this.map.getWidth()];
         for (int i = 0; i < this.map.getHeight(); i++) {
             for (int j = 0; j < this.map.getWidth(); j++) {
-                this.staticObjectCache[i][j] = new AllMoveStats();
+                this.staticObjectCache[i][j] = new com.example.landgame.AllMoveStats();
             }
         }
 
         List<Team> teams = putEntities(entities);
-
         this.teams = new Team[teams.size()];
         teams.toArray(this.teams);
     }
@@ -281,44 +263,31 @@ public class Game {
 
     private void addResource(Resource resource) {
         // find direction stats for that res
-//        for (int i = 0; i < this.map.getWidth(); i++) {
-//            for (int j = 0; j < this.map.getHeight(); j++) {
-//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-//                if (n != -1) {
-//                    Vector vector = Map.decode(n);
-//                    this.staticObjectCache[i][j].addVector(vector);
-//                }
-//
-////                int distance = vector.getDistance();
-////                int move1 = vector.getMove1();
-////                int move2 = vector.getMove2();
-////
-////                for (int i = 1; i <= 4; i++) {
-////                    if (i == move1 || i == move2) {
-////                        allMoveStats.addStat(i, distance - 1);
-////                    } else {
-////                        allMoveStats.addStat(i, distance + 1);
-////                    }
-////
-////                }
-//            }
-//        }
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    this.staticObjectCache[i][j].addVector(vector);
+                }
+            }
+        }
         nr++;
         this.resources.add(resource);
     }
 
     private void removeResource(Resource resource) {
-//        // remove distance
-//        for (int i = 0; i < this.map.getWidth(); i++) {
-//            for (int j = 0; j < this.map.getHeight(); j++) {
-//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-//                if (n != -1) {
-//                    Vector vector = Map.decode(n);
-//                    this.staticObjectCache[i][j].removeVector(vector);
-//                }
-//
-//            }
-//        }
+        // remove distance
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    this.staticObjectCache[i][j].removeVector(vector);
+                }
+
+            }
+        }
         this.resources.remove(resource);
         this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
     }
@@ -455,7 +424,7 @@ public class Game {
         int badMove = Team.oppositeMove(player.getLastMove());
         Direction badDirection = null;
 //        int badMove = 100;
-        for (Direction direction: Game.directions) {
+        for (Direction direction: com.example.landgame.Game.directions) {
             int finalX = x + direction.getX();
             int finalY = y + direction.getY();
             int moveNumber = direction.getMoveNumber();
@@ -492,9 +461,9 @@ public class Game {
         return list;
     }
 
-    private <T extends Entity> AllMoveStats getAllMoveStats(Player player, List<T> list) {
+    private <T extends Entity> com.example.landgame.AllMoveStats getAllMoveStats(Player player, List<T> list) {
 
-        AllMoveStats allMoveStats = new AllMoveStats();
+        com.example.landgame.AllMoveStats allMoveStats = new com.example.landgame.AllMoveStats();
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
 
@@ -584,71 +553,6 @@ public class Game {
         return this.map.getTile(x,y).getBuilding() == null;
     }
 
-    public int test0(int index, Player player) {
-
-        int[] array = this.map.getEnds(player.getX(), player.getY());
-        for (int i = index + 1; i < this.players.size(); i++) {
-            Player player2 = this.players.get(i);
-            if (!player.sameTeam(player2)) {
-                int number = array[player2.getX() + 150 * player2.getY()];
-                if (number == -2) {
-                    number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
-                }
-                int d = Map.decode(number).getDistance();
-                player.setUpDistance(player.getUpDistance() + d);
-                player2.setUpDistance(player2.getUpDistance() + d);
-            }
-        }
-        return player.getUpDistance();
-    }
-
-    public int test(int index, Player player) {
-        for (int i = index + 1; i < this.players.size(); i++) {
-            Player player2 = this.players.get(i);
-            if (!player.sameTeam(player2)) {
-                int number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
-                int d = Map.decode(number).getDistance();
-                player.setUpDistance(player.getUpDistance() + d);
-                player2.setUpDistance(player2.getUpDistance() + d);
-            }
-        }
-        return player.getUpDistance();
-    }
-
-    public int test2(Player player) {
-
-        int a = 0;
-
-        for (int i = 0; i < this.players.size(); i++) {
-            Player player2 = this.players.get(i);
-            if (!player.sameTeam(player2)) {
-                int number = this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
-                int d = Map.decode(number).getDistance();
-                a += d;
-            }
-        }
-        return a;
-    }
-
-    public int test_res_default(Player player) {
-        int a = 0;
-        for (Resource resource: this.resources) {
-            int number = this.map.findPath(player.getX(), player.getY(), resource.getX(), resource.getY());
-            Vector vector = Map.decode(number);
-            if (vector.getMove1() == 1 || vector.getMove2() == 1) {
-                a += vector.getDistance() - 1;
-            } else {
-                a += vector.getDistance() + 1;
-            }
-        }
-        return a;
-    }
-
-    public int test_res_cache(Player player) {
-//        System.out.println(this.staticObjectCache[player.getX()][player.getY()].get(1));
-        return this.staticObjectCache[player.getX()][player.getY()].get(1).getTotal();
-    }
-
     public void tick() {
 
         /* todo fix when multiple players go straight
@@ -659,144 +563,6 @@ public class Game {
 
         long s;
         long e;
-
-//        int check = 0;
-//        int pla = this.players.size();
-//        int res = this.resources.size();
-//
-////        for (Player player: this.players) {
-////            for (Player player2: this.players) {
-////                check += this.map.findPath(player.getX(), player.getY(), player2.getX(), player2.getY());
-////            }
-////        }
-////
-////        int test = 0;
-////        int test2 = 0;
-////        int test0 = 0;
-////
-////        s = System.currentTimeMillis();
-////        for (int index = 0; index < this.players.size(); index++) {
-////            Player player = this.players.get(index);
-////            test += test(index, player);
-////        }
-////        for (Player player: this.players) {
-////            player.setUpDistance(0);
-////        }
-////        e = System.currentTimeMillis();
-////        this.funcTimes[1] += e - s;
-////
-////        s = System.currentTimeMillis();
-////        for (int index = 0; index < this.players.size(); index++) {
-////            Player player = this.players.get(index);
-////            test2 += test2(player);
-////        }
-////        e = System.currentTimeMillis();
-////        this.funcTimes[2] += e - s;
-////
-////        s = System.currentTimeMillis();
-////        for (int index = 0; index < this.players.size(); index++) {
-////            Player player = this.players.get(index);
-////            test0 += test0(index, player);
-////        }
-////        for (Player player: this.players) {
-////            player.setUpDistance(0);
-////        }
-////        e = System.currentTimeMillis();
-////        this.funcTimes[3] += e - s;
-//
-//        //todo
-//        // add static object val tables
-//        // int[] > sum(n) > n**2
-//
-//        int res1 = 0;
-//        int res2 = 0;
-
-//        s = System.nanoTime();
-//
-////        System.out.println("start----");
-//
-//
-//        s = System.nanoTime();
-//        for (Player player: this.players) {
-//            int a = test_res_cache(player);
-////            System.out.println(player + " " + a);
-//            res2 += a;
-//        }
-//
-//        e = System.nanoTime();
-//        this.funcTimes[5] += e - s;
-//
-//
-//        for (Player player: this.players) {
-//            int a = test_res_default(player);
-////            System.out.println(player + " " + a);
-//            res1 += a;
-//        }
-//        e = System.nanoTime();
-//        this.funcTimes[4] += e - s;
-//
-////        System.out.println("------");
-//
-//
-//
-////        System.out.println(this.resources.size());
-////        System.out.println(nr);
-////        System.out.println("-----");
-//        if (res1 != res2) {
-//            throw new RuntimeException(res1 + " " + res2);
-//        }
-//
-//
-//
-////        s = System.currentTimeMillis();
-////        for (int index = 0; index < this.players.size(); index++) {
-////            Player player = this.players.get(index);
-////            test += test(index, player);
-////        }
-////        for (Player player: this.players) {
-////            player.setUpDistance(0);
-////        }
-////        e = System.currentTimeMillis();
-////        this.funcTimes[4] += e - s;
-////
-////        s = System.currentTimeMillis();
-////        for (int index = 0; index < this.players.size(); index++) {
-////            Player player = this.players.get(index);
-////            test2 += test2(player);
-////        }
-////        e = System.currentTimeMillis();
-////        this.funcTimes[5] += e - s;
-//
-//
-////        for (Player player: this.players) {
-////            for (Player player2: this.players) {
-////                if (!player.sameTeam(player2)) {
-////
-////                    int number = this.map.findPath(
-////                            player.getX(),
-////                            player.getY(),
-////                            player2.getX(),
-////                            player2.getY());
-////
-////                    test += number;
-////                }
-////            }
-////
-////            for (Resource player2: this.resources) {
-////                if (!player2.sameTeam(player)) {
-////
-////                    int number = this.map.findPath(
-////                            player.getX(),
-////                            player.getY(),
-////                            player2.getX(),
-////                            player2.getY());
-////
-////                    test += number;
-////                }
-////            }
-////        }
-
-
         for (Player player: this.players) {
 
             List<Direction> legalMoves = getLegalMovesForPlayer(player);
@@ -810,9 +576,36 @@ public class Game {
 
                 s = System.nanoTime();
 
-                AllMoveStats enemyStats = getAllMoveStats(player, this.players);
-                AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
-                AllMoveStats resourceStats = getAllMoveStats(player, this.resources);
+                com.example.landgame.AllMoveStats enemyStats = getAllMoveStats(player, this.players);
+                com.example.landgame.AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
+
+                // get stats from cache
+                com.example.landgame.AllMoveStats resourceStats = this.staticObjectCache[player.getX()][player.getY()];
+//                com.example.landgame.AllMoveStats resourceStats2 = getAllMoveStats(player, this.resources);
+//                for (int i = 1; i <= 4; i++) {
+//                    if (resourceStats.get(i).getCount() != resourceStats2.get(i).getCount() ||
+//                            resourceStats.get(i).getTotal() != resourceStats2.get(i).getTotal()
+//                            || resourceStats.get(i).getLowest() != resourceStats2.get(i).getLowest()
+//                    ) {
+//                        int n = 10;
+//                        ArrayList<Integer> outArray = new ArrayList<>();
+//                        for (int in = 0; in < n; in++)
+//                            outArray.add(resourceStats.getMoveStats2().getQueue()[in]);
+//                        System.out.println(outArray);
+//                        System.out.println(resourceStats.getMoveStats2().getLowest());
+//                        n = 10;
+//                        outArray = new ArrayList<>();
+//                        for (int in = 0; in < n; in++)
+//                            outArray.add(resourceStats2.getMoveStats2().getQueue()[in]);
+//                        System.out.println(outArray);
+//                        System.out.println(resourceStats2.getMoveStats2().getLowest());
+//                        throw new RuntimeException("\n" +
+//                                resourceStats
+//                                + "\n" +
+//                                resourceStats2
+//                        );
+//                    }
+//                }
 
                 e = System.nanoTime();
                 if (globalTime) {
@@ -949,3 +742,4 @@ public class Game {
         }
     }
 }
+
