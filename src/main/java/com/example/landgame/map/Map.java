@@ -93,17 +93,17 @@ public class Map {
     }
 
     private int getMoveNumber(int xs, int ys, int xe, int ye) {
-        final int shift = this.height * this.width;
+//        final int shift = this.height * this.width;
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
 //        return this.coords[coords + coorde * shift];
-        return this.matrix[coords][coorde];
+        return this.matrix[coorde][coords];
 //        return this.matrix[coorde][coords];
     }
 
-    public int[] getEnds(int xs, int ys) {
-        int coords = xs + ys * this.height;
-        return this.matrix[coords];
+    public int[] getEnds(int xe, int ye) {
+        int coorde = xe + ye * this.height;
+        return this.matrix[coorde];
     }
 
     private void setMoveNumber(int xs, int ys, int xe, int ye, int moveNumber) {
@@ -111,7 +111,7 @@ public class Map {
         int coords = xs + ys * this.height;
         int coorde = xe + ye * this.height;
 //        this.coords[coords + coorde * shift] = moveNumber;
-        this.matrix[coords][coorde] = moveNumber;
+        this.matrix[coorde][coords] = moveNumber;
 //        this.matrix[coorde][coords] = moveNumber;
     }
 

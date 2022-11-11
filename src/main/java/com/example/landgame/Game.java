@@ -278,16 +278,24 @@ public class Game {
 
     private void removeResource(Resource resource) {
         // remove distance
+//        int[] end = this.map.getEnds(resource.getX(), resource.getY());
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
+                long s = System.nanoTime();
                 int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                long e = System.nanoTime();
+                this.funcTimes[5] += e - s;
                 if (n != -1) {
                     Vector vector = Map.decode(n);
+                    s = System.nanoTime();
+                    // todo store values in array not objects
                     this.staticObjectCache[i][j].removeVector(vector);
+                    e = System.nanoTime();
+                    this.funcTimes[6] += e - s;
                 }
-
             }
         }
+        this.funcTimes[7] += 1;
         this.resources.remove(resource);
         this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
     }
@@ -673,6 +681,12 @@ public class Game {
                     this.resources.size(),
                     this.map.getExploredTiles(),
                     this.map.getHash()
+
+            );
+            System.out.println(
+                    (this.funcTimes[5] / 1_000_000) + " " +
+                    (this.funcTimes[6] / 1_000_000) + " " +
+                    (this.funcTimes[7])
 
             );
         }
