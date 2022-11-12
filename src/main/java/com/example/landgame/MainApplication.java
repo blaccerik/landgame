@@ -103,18 +103,25 @@ public class MainApplication extends javafx.application.Application {
 
         AnimationTimer animationTimer = new AnimationTimer() {
             private long lastUpdate = 0 ;
-            private static final long min_frame = 16_000_000;
+            private static final long min_frame = 16_000_000L;
 
             @Override
             public void handle(long now) {
                 if (now - lastUpdate >= min_frame) {
+                    lastUpdate = now;
 //                    long start_time = System.currentTimeMillis();
-                    game.tick();
+                    try {
+                        game.tick();
+                    } catch (RuntimeException r) {
+                        r.printStackTrace();
+                        primaryStage.close();
+                    }
+
 //                    long end_time = System.currentTimeMillis();
 //                    double difference = (end_time - start_time);
 ////                    System.out.println("That took " + difference + " milliseconds");
-//                    lastUpdate = now;
-                    lastUpdate = 9555_555_555L;
+
+//                    lastUpdate = 9555_555_555L;
 
                     renderer.render(game.getMap());
                     renderer.upDateStats(game);

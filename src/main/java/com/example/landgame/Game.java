@@ -15,8 +15,6 @@ import com.example.landgame.pathfinding.Direction;
 import com.example.landgame.pathfinding.PathMatrix;
 import com.example.landgame.pathfinding.Vector;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,139 +23,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.landgame.enums.TerrainType.*;
 import static com.example.landgame.enums.MoveType.*;
 import static com.example.landgame.config.Config.*;
-
-@Getter
-@Setter
-//@ToString
-class MoveStats {
-
-    @Override
-    public String toString() {
-        return " " + this.lowest;
-    }
-
-    public static final int MAX_SIZE = 400;
-    private static final int IF_MAX = 1000;
-
-    //    private int score;
-    private int lowest;
-    private int count;
-    private int total;
-
-    // index is distance
-    // value is count
-    private int[] queue;
-
-    public MoveStats() {
-        this.count = 0;
-        this.total = 0;
-        this.lowest = IF_MAX;
-        this.queue = new int[MAX_SIZE];
-    }
-
-    public void addDistance(int distance) {
-        if (distance < lowest) {
-            lowest = distance;
-        }
-        this.count++;
-        this.total += distance;
-        this.queue[distance]++;
-//        this.score += (float) 1 / (sum * sum);
-    }
-
-    public void removeDistance(int distance) {
-        // there might be new lowest
-        this.count--;
-        this.total -= distance;
-        this.queue[distance]--;
-        if (distance == this.lowest && this.queue[distance] == 0) {
-
-            int best = IF_MAX;
-            for (int i = distance; i < MAX_SIZE; i++) {
-                int n = this.queue[i];
-                if (n < best && n != 0) {
-                    best = i;
-                    break;
-                }
-            }
-            this.lowest = best;
-        }
-    }
-
-
-    public float getScore() {
-        int a = this.lowest * this.total;
-        if (a == 0) {
-            return 0;
-        }
-//        System.out.println(this);
-        return (float) 1 / a;
-    }
-}
-
-@Getter
-@ToString
-class AllMoveStats {
-    private final com.example.landgame.MoveStats moveStats1;
-    private final com.example.landgame.MoveStats moveStats2;
-    private final com.example.landgame.MoveStats moveStats3;
-    private final com.example.landgame.MoveStats moveStats4;
-
-    public AllMoveStats() {
-        this.moveStats1 = new com.example.landgame.MoveStats();
-        this.moveStats2 = new com.example.landgame.MoveStats();
-        this.moveStats3 = new com.example.landgame.MoveStats();
-        this.moveStats4 = new com.example.landgame.MoveStats();
-    }
-
-    public void addVector(Vector vector) {
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-
-        for (int i = 1; i <= 4; i++) {
-            if (i == move1 || i == move2) {
-                get(i).addDistance(distance - 1);
-            } else {
-                get(i).addDistance(distance + 1);
-            }
-
-        }
-    }
-
-    public void removeVector(Vector vector) {
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-
-        for (int i = 1; i <= 4; i++) {
-            if (i == move1 || i == move2) {
-                get(i).removeDistance(distance - 1);
-            } else {
-                get(i).removeDistance(distance + 1);
-            }
-
-        }
-    }
-
-    public com.example.landgame.MoveStats get(int i) {
-        switch (i) {
-            case 1:
-                return this.moveStats1;
-            case 2:
-                return this.moveStats2;
-            case 3:
-                return this.moveStats3;
-            case 4:
-                return this.moveStats4;
-        }
-        return null;
-    }
-}
 
 @Getter
 public class Game {
@@ -165,6 +36,8 @@ public class Game {
     public static final boolean globalCheck = true;
     public static final boolean globalTime = true;
     long[] funcTimes = new long[8];
+    static long check = 0;
+    long[] time = new long[5];
 
     public static final boolean debug = false;
 
@@ -192,9 +65,9 @@ public class Game {
 
     public final static float goodScore = 1000000;
 
-    private final com.example.landgame.AllMoveStats[][] staticObjectCache;
-    private int nr = 0;
-
+    private final AllMoveStats[][] staticObjectCache;
+    private final int[][][] cache;
+    private final int[][][] cacheFast;
     private final Random random;
 
 
@@ -211,16 +84,45 @@ public class Game {
         this.resources = new ArrayList<>();
         this.buildings = new ArrayList<>();
 
-        this.staticObjectCache = new com.example.landgame.AllMoveStats[this.map.getHeight()][this.map.getWidth()];
+        int numberOfValues = 2;
+        int directionNumber = 4;
+        int size = 400;
+        this.cache = new int[this.map.getWidth()][this.map.getHeight()][directionNumber * (numberOfValues + size)];
+        this.cacheFast = new int[this.map.getWidth()][this.map.getHeight()][directionNumber * numberOfValues];
         for (int i = 0; i < this.map.getHeight(); i++) {
             for (int j = 0; j < this.map.getWidth(); j++) {
-                this.staticObjectCache[i][j] = new com.example.landgame.AllMoveStats();
+                this.cache[i][j][0] = 1000;
+                this.cache[i][j][402] = 1000;
+                this.cache[i][j][402 * 2] = 1000;
+                this.cache[i][j][402 * 3] = 1000;
+                this.cacheFast[i][j][0] = 1000;
+                this.cacheFast[i][j][2] = 1000;
+                this.cacheFast[i][j][4] = 1000;
+                this.cacheFast[i][j][6] = 1000;
+            }
+        }
+
+        this.staticObjectCache = new AllMoveStats[this.map.getHeight()][this.map.getWidth()];
+        for (int i = 0; i < this.map.getHeight(); i++) {
+            for (int j = 0; j < this.map.getWidth(); j++) {
+                this.staticObjectCache[i][j] = new AllMoveStats();
             }
         }
 
         List<Team> teams = putEntities(entities);
         this.teams = new Team[teams.size()];
         teams.toArray(this.teams);
+
+        show();
+    }
+
+    private void show() {
+        for (int i = 0; i < this.time.length; i++) {
+            System.out.print(this.time[i] / 1_000_000);
+            System.out.print(" ");
+        }
+        System.out.println();
+        Arrays.fill(this.time, 0);
     }
 
     private List<Team> putEntities(List<Entity> list) {
@@ -262,6 +164,14 @@ public class Game {
     }
 
     private void addResource(Resource resource) {
+
+        check += this.map.findPath(0,0, resource.getX(), resource.getY());
+
+
+        long s;
+        long e;
+
+        s = System.nanoTime();
         // find direction stats for that res
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
@@ -272,32 +182,227 @@ public class Game {
                 }
             }
         }
-        nr++;
-        this.resources.add(resource);
-    }
+        e = System.nanoTime();
+        this.time[0] += e - s;
 
-    private void removeResource(Resource resource) {
-        // remove distance
-//        int[] end = this.map.getEnds(resource.getX(), resource.getY());
+        s = System.nanoTime();
+        // find direction stats for that res
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
-                long s = System.nanoTime();
                 int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                long e = System.nanoTime();
-                this.funcTimes[5] += e - s;
                 if (n != -1) {
                     Vector vector = Map.decode(n);
-                    s = System.nanoTime();
-                    // todo store values in array not objects
-                    this.staticObjectCache[i][j].removeVector(vector);
-                    e = System.nanoTime();
-                    this.funcTimes[6] += e - s;
+                    addToCache(i,j,vector);
                 }
             }
         }
+        e = System.nanoTime();
+        this.time[1] += e - s;
+
+        s = System.nanoTime();
+        // find direction stats for that res
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    addToCacheFast(i,j,vector);
+
+                }
+            }
+        }
+        e = System.nanoTime();
+        this.time[2] += e - s;
+
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                if (this.staticObjectCache[i][j].get(1).getLowest() != this.cache[i][j][0]) {
+                    System.out.println(this.staticObjectCache[i][j].get(1).getLowest());
+                    System.out.println(this.cache[i][j][0]);
+                    throw new RuntimeException();
+                }
+                if (this.staticObjectCache[i][j].get(1).getTotal() != this.cache[i][j][1]) {
+                    System.out.println(i + " " + j);
+                    System.out.println(this.staticObjectCache[i][j].get(1).getTotal());
+                    System.out.println(this.cache[i][j][1]);
+                    throw new RuntimeException();
+                }
+//                if (this.staticObjectCache[i][j].get(2).getLowest() != this.cacheFast[i][j][2]) {
+//                    System.out.println(i + " " + j);
+//                    System.out.println(this.staticObjectCache[i][j].get(2).getLowest());
+//                    System.out.println( this.cacheFast[i][j][2]);
+//                    throw new RuntimeException();
+//                }
+//                if (this.staticObjectCache[i][j].get(2).getTotal() != this.cacheFast[i][j][3]) {
+//                    System.out.println(i + " " + j);
+//                    System.out.println(this.staticObjectCache[i][j].get(2).getTotal());
+//                    System.out.println( this.cacheFast[i][j][3]);
+//                    throw new RuntimeException();
+//                }
+            }
+        }
+
+        this.resources.add(resource);
+    }
+
+    private void addToCache(int x, int y, Vector vector) {
+        final int size = 400 + 2;
+        int distance = vector.getDistance();
+        int move1 = vector.getMove1();
+        int move2 = vector.getMove2();
+        int[] m = this.cache[x][y];
+        for (int i = 0; i < 4; i++) {
+            int value;
+            if (i + 1 == move1 || i + 1 == move2) {
+                value = distance - 1;
+            } else {
+                value = distance + 1;
+            }
+            if (value < m[size * i]) {
+                m[size * i] = value;
+            }
+            m[size * i + 1] += value;
+            m[size * i + 2 + value]++;
+        }
+    }
+
+    private void addToCacheFast(int x, int y, Vector vector) {
+        int distance = vector.getDistance();
+        int move1 = vector.getMove1();
+        int move2 = vector.getMove2();
+        int[] m = this.cacheFast[x][y];
+        for (int i = 0; i < 4; i++) {
+            int value;
+            if (i + 1 == move1 || i + 1 == move2) {
+                value = distance - 1;
+            } else {
+                value = distance + 1;
+            }
+            if (value < m[i * 2]) {
+                m[i * 2] = value;
+            }
+            m[(i * 2) + 1] += value;
+        }
+    }
+
+    private void removeResource(Resource resource) {
+        long s;
+        long e;
+
+//        System.out.println(this.staticObjectCache[0][0].get(1));
+//        List<Integer> list = new ArrayList<>();
+//        for (int i = 0; i < 10; i++) {
+//            list.add(this.cache[0][0][i]);
+//        }
+//        System.out.println(list);
+
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    // todo store values in array not objects
+                    this.staticObjectCache[i][j].removeVector(vector);
+                }
+            }
+        }
+
+
+
+        s = System.nanoTime();
+        // find direction stats for that res
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+                if (n != -1) {
+                    Vector vector = Map.decode(n);
+                    removeFromCache(i,j,vector);
+
+                }
+            }
+        }
+        e = System.nanoTime();
+        this.time[1] += e - s;
+
+//        System.out.println(this.staticObjectCache[0][0].get(1));
+//        list = new ArrayList<>();
+//        for (int i = 0; i < 10; i++) {
+//            list.add(this.cache[0][0][i]);
+//        }
+//        System.out.println(list);
+
+        for (int i = 0; i < this.map.getWidth(); i++) {
+            for (int j = 0; j < this.map.getHeight(); j++) {
+                int total = this.staticObjectCache[i][j].get(1).getTotal();
+                int low = this.staticObjectCache[i][j].get(1).getLowest();
+                int low2 = this.cache[i][j][0];
+                int t2 = this.cache[i][j][1];
+                if (total != t2) {
+                    System.out.println(i + " " + j);
+                    throw new RuntimeException(total + " " + t2);
+                } else if (low != low2) {
+                    System.out.println(i + " " + j);
+                    throw new RuntimeException(low + " " + low2);
+                }
+            }
+        }
+
+
         this.funcTimes[7] += 1;
         this.resources.remove(resource);
         this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
+    }
+
+    private void removeFromCache(int x, int y, Vector vector) {
+        final int size = 400 + 2;
+        int distance = vector.getDistance();
+        int move1 = vector.getMove1();
+        int move2 = vector.getMove2();
+        int[] m = this.cache[x][y];
+        for (int i = 0; i < 4; i++) {
+            int value;
+            if (i + 1 == move1 || i + 1 == move2) {
+                value = distance - 1;
+            } else {
+                value = distance + 1;
+            }
+            m[size * i + 1] -= value;
+            int dis = m[size * i + 2 + value];
+            dis--;
+            m[size * i + 2 + value] = dis;
+
+
+            if (x == 0 && y == 0) {
+                System.out.println("------");
+                List<Integer> list = new ArrayList<>();
+                for (int index = 0; index < 10; index++) {
+                    list.add(this.cache[x][y][index]);
+                }
+                System.out.println(list);
+            }
+
+            int lowest = m[size * i];
+            if (value == lowest && dis == 0) {
+
+                int best = 1000;
+                for (int j = size * i + 2 + value; j < size * i + 400; j++) {
+                    int n = m[j];
+                    if (n < best && n != 0) {
+                        best = j - 2;
+                        break;
+                    }
+                }
+                m[size * i] = best;
+            }
+
+            if (x == 0 && y == 0) {
+                List<Integer> list = new ArrayList<>();
+                for (int index = 0; index < 10; index++) {
+                    list.add(this.cache[x][y][index]);
+                }
+                System.out.println(list);
+            }
+        }
     }
 
     private void makeMove(Player player, Direction direction) {
@@ -469,7 +574,7 @@ public class Game {
         return list;
     }
 
-    private <T extends Entity> com.example.landgame.AllMoveStats getAllMoveStats(Player player, List<T> list) {
+    private <T extends Entity> AllMoveStats getAllMoveStats(Player player, List<T> list) {
 
         com.example.landgame.AllMoveStats allMoveStats = new com.example.landgame.AllMoveStats();
         for (Entity entity: list) {
