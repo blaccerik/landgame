@@ -117,8 +117,8 @@ public class Game {
     }
 
     private void show() {
-        for (int i = 0; i < this.time.length; i++) {
-            System.out.print(this.time[i] / 1_000_000);
+        for (long l : this.time) {
+            System.out.printf("% 5d", l / 1_000_000);
             System.out.print(" ");
         }
         System.out.println();
@@ -197,7 +197,7 @@ public class Game {
             }
         }
         e = System.nanoTime();
-        this.time[1] += e - s;
+        this.time[2] += e - s;
 
         s = System.nanoTime();
         // find direction stats for that res
@@ -212,7 +212,7 @@ public class Game {
             }
         }
         e = System.nanoTime();
-        this.time[2] += e - s;
+        this.time[4] += e - s;
 
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
@@ -286,9 +286,7 @@ public class Game {
     }
 
     private void removeResource(Resource resource) {
-        long s;
-        long e;
-
+        check += this.map.findPath(0,0, resource.getX(), resource.getY());
 //        System.out.println(this.staticObjectCache[0][0].get(1));
 //        List<Integer> list = new ArrayList<>();
 //        for (int i = 0; i < 10; i++) {
@@ -296,6 +294,10 @@ public class Game {
 //        }
 //        System.out.println(list);
 
+        long s;
+        long e;
+
+        s = System.nanoTime();
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
                 int n = this.map.findPath(i,j, resource.getX(), resource.getY());
@@ -306,8 +308,8 @@ public class Game {
                 }
             }
         }
-
-
+        e = System.nanoTime();
+        this.time[1] += e - s;
 
         s = System.nanoTime();
         // find direction stats for that res
@@ -322,7 +324,9 @@ public class Game {
             }
         }
         e = System.nanoTime();
-        this.time[1] += e - s;
+        this.time[3] += e - s;
+
+        // todo add remove for fast cache
 
 //        System.out.println(this.staticObjectCache[0][0].get(1));
 //        list = new ArrayList<>();
@@ -372,14 +376,14 @@ public class Game {
             m[size * i + 2 + value] = dis;
 
 
-            if (x == 0 && y == 0) {
-                System.out.println("------");
-                List<Integer> list = new ArrayList<>();
-                for (int index = 0; index < 10; index++) {
-                    list.add(this.cache[x][y][index]);
-                }
-                System.out.println(list);
-            }
+//            if (x == 0 && y == 0) {
+//                System.out.println("------");
+//                List<Integer> list = new ArrayList<>();
+//                for (int index = 0; index < 10; index++) {
+//                    list.add(this.cache[x][y][index]);
+//                }
+//                System.out.println(list);
+//            }
 
             int lowest = m[size * i];
             if (value == lowest && dis == 0) {
@@ -395,13 +399,13 @@ public class Game {
                 m[size * i] = best;
             }
 
-            if (x == 0 && y == 0) {
-                List<Integer> list = new ArrayList<>();
-                for (int index = 0; index < 10; index++) {
-                    list.add(this.cache[x][y][index]);
-                }
-                System.out.println(list);
-            }
+//            if (x == 0 && y == 0) {
+//                List<Integer> list = new ArrayList<>();
+//                for (int index = 0; index < 10; index++) {
+//                    list.add(this.cache[x][y][index]);
+//                }
+//                System.out.println(list);
+//            }
         }
     }
 
@@ -773,29 +777,31 @@ public class Game {
 
         this.funcTimes[0] += end - start;
 
-        // stats
-        if (tick % 10 == 0) {
-            System.out.printf("% 5d T: % 5d O: % 6d R: % 6d C: % 6d S: % 6d PS| % 6d RS| % 6d EX| % 6d H| %d\n",
-                    tick,
-                    this.funcTimes[0] / 1_000_000,
-                    this.funcTimes[1] / 1_000_000,
-                    this.funcTimes[2] / 1_000_000,
-                    this.funcTimes[3] / 1_000_000,
-                    this.funcTimes[4] / 1_000_000,
-                    this.players.size(),
-                    this.resources.size(),
-                    this.map.getExploredTiles(),
-                    this.map.getHash()
+        show();
 
-            );
-            System.out.println(
-                    (this.funcTimes[5] / 1_000_000) + " " +
-                    (this.funcTimes[6] / 1_000_000) + " " +
-                    (this.funcTimes[7])
-
-            );
-        }
-        Arrays.fill(this.funcTimes, 0);
+//        // stats
+//        if (tick % 10 == 0) {
+//            System.out.printf("% 5d T: % 5d O: % 6d R: % 6d C: % 6d S: % 6d PS| % 6d RS| % 6d EX| % 6d H| %d\n",
+//                    tick,
+//                    this.funcTimes[0] / 1_000_000,
+//                    this.funcTimes[1] / 1_000_000,
+//                    this.funcTimes[2] / 1_000_000,
+//                    this.funcTimes[3] / 1_000_000,
+//                    this.funcTimes[4] / 1_000_000,
+//                    this.players.size(),
+//                    this.resources.size(),
+//                    this.map.getExploredTiles(),
+//                    this.map.getHash()
+//
+//            );
+//            System.out.println(
+//                    (this.funcTimes[5] / 1_000_000) + " " +
+//                    (this.funcTimes[6] / 1_000_000) + " " +
+//                    (this.funcTimes[7])
+//
+//            );
+//        }
+//        Arrays.fill(this.funcTimes, 0);
         tick++;
     }
 
