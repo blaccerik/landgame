@@ -37,7 +37,7 @@ public class Game {
     public static final boolean globalTime = true;
     long[] funcTimes = new long[8];
     static long check = 0;
-    long[] time = new long[5];
+    long[] time = new long[6];
 
     public static final boolean debug = false;
 
@@ -68,6 +68,7 @@ public class Game {
     private final AllMoveStats[][] staticObjectCache;
     private final int[][][] cache;
     private final int[][][] cacheFast;
+    private final int[][][] cacheSingle;
     private final Random random;
 
 
@@ -88,7 +89,11 @@ public class Game {
         int directionNumber = 4;
         int size = 400;
         this.cache = new int[this.map.getWidth()][this.map.getHeight()][directionNumber * (numberOfValues + size)];
+        // too slow
         this.cacheFast = new int[this.map.getWidth()][this.map.getHeight()][directionNumber * numberOfValues];
+
+        this.cacheSingle = new int[this.map.getWidth()][this.map.getHeight()][];
+
         for (int i = 0; i < this.map.getHeight(); i++) {
             for (int j = 0; j < this.map.getWidth(); j++) {
                 this.cache[i][j][0] = 1000;
@@ -287,12 +292,16 @@ public class Game {
 
     private void removeResource(Resource resource) {
         check += this.map.findPath(0,0, resource.getX(), resource.getY());
-//        System.out.println(this.staticObjectCache[0][0].get(1));
-//        List<Integer> list = new ArrayList<>();
-//        for (int i = 0; i < 10; i++) {
-//            list.add(this.cache[0][0][i]);
-//        }
-//        System.out.println(list);
+        System.out.println(this.staticObjectCache[0][0].get(1));
+
+        for (int ind = 0; ind < 4; ind++) {
+            List<Integer> list = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                list.add(this.cache[0][0][402 * ind + i]);
+            }
+            System.out.println(list);
+        }
+
 
         long s;
         long e;
@@ -325,6 +334,40 @@ public class Game {
         }
         e = System.nanoTime();
         this.time[3] += e - s;
+
+
+//        s = System.nanoTime();
+//        // find direction stats for that res
+//        for (int i = 0; i < this.map.getWidth(); i++) {
+//            for (int j = 0; j < this.map.getHeight(); j++) {
+//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
+//                if (n != -1) {
+//                    Vector vector = Map.decode(n);
+//                    if (removeFromFastCache(i,j,vector)) {
+//                        int[] m = this.cacheFast[i][j];
+//                        m[0] = 1000;
+//                        m[1] = 0;
+//                        m[2] = 1000;
+//                        m[3] = 0;
+//                        m[4] = 1000;
+//                        m[5] = 0;
+//                        m[6] = 1000;
+//                        m[7] = 0;
+//                        for (Resource resource1 : this.resources) {
+//                            int n2 = this.map.findPath(i,j, resource1.getX(), resource1.getY());
+//                            if (n2 != -1) {
+//                                Vector vector2 = Map.decode(n2);
+//                                addToCacheFast(i,j,vector2);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        e = System.nanoTime();
+//        this.time[5] += e - s;
+
+
 
         // todo add remove for fast cache
 
@@ -370,10 +413,12 @@ public class Game {
             } else {
                 value = distance + 1;
             }
+            // total
             m[size * i + 1] -= value;
-            int dis = m[size * i + 2 + value];
-            dis--;
-            m[size * i + 2 + value] = dis;
+            // distance
+            int distance2 = m[size * i + 2 + value];
+            distance2--;
+            m[size * i + 2 + value] = distance2;
 
 
 //            if (x == 0 && y == 0) {
@@ -385,8 +430,9 @@ public class Game {
 //                System.out.println(list);
 //            }
 
+            // lowest
             int lowest = m[size * i];
-            if (value == lowest && dis == 0) {
+            if (value == lowest && distance2 == 0) {
 
                 int best = 1000;
                 for (int j = size * i + 2 + value; j < size * i + 400; j++) {
@@ -407,6 +453,30 @@ public class Game {
 //                System.out.println(list);
 //            }
         }
+    }
+
+    private boolean removeFromFastCache(int x, int y, Vector vector) {
+        int distance = vector.getDistance();
+        int move1 = vector.getMove1();
+        int move2 = vector.getMove2();
+        int[] m = this.cacheFast[x][y];
+        for (int i = 0; i < 4; i++) {
+            int value;
+            if (i + 1 == move1 || i + 1 == move2) {
+                value = distance - 1;
+            } else {
+                value = distance + 1;
+            }
+            // total
+            m[(2 * i) + 1] -= value;
+            // lowest
+            int lowest = m[2 * i];
+            // find new lowest
+            if (value == lowest) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void makeMove(Player player, Direction direction) {
@@ -805,81 +875,72 @@ public class Game {
         tick++;
     }
 
-    public static void main(String[] args) {
+    private static void testNormal(int[] m, int distance, int move1, int move2) {
+        int size = 12;
 
-//        // todo evey round calculate scoreboard for all objects
-//        //  then if want to find score for direction check
-//        //  check scoreboard if has calculated if has then no need to recalculate
-//        //  clear scoreboard after every tick
-//
-//        Random random = new Random(0);
-//        Map map = new Map(150, 150, random);
-//
-//        TeamConfig teamConfig = new TeamConfig(
-//                1,
-//                1,
-//                1,
-//                1,
-//                2,
-//                1);
-//
-//        Team blue = new Team(BLUE, teamConfig);
-//        Team red = new Team(RED, teamConfig);
-//
-//        List<Entity> entities = new ArrayList<>();
-//        entities.add(blue.createPlayer(149, 149, Farmer.class));
-//        entities.add(blue.createPlayer(139, 139, Farmer.class));
-//        entities.add(red.createPlayer(39, 4, Farmer.class));
-//
-//        Player player = red.createPlayer(45, 1, Farmer.class);
-//
-//        entities.add(player);
-//
-//        entities.addAll(map.getTerrainGeneration().generateResources());
-//
-//        Game game = new Game(map, entities);
-//        System.out.println(game.getResources().size());
-//        AllMoveStats allMoveStats = game.getAllMoveStats(player, game.getResources());
-//        System.out.println(allMoveStats);
-//
-//        int x = player.getX();
-//        int y = player.getY();
-//        for (Direction direction: Game.directions) {
-//            int finalx = x + direction.getX();
-//            int finaly = y + direction.getY();
-//            int total = 0;
-//
-//            for (Resource resource: game.getResources()) {
-//                int move = game.getMap().findPath(finalx,finaly,resource.getX(), resource.getY());
-//                if (move != -1) {
-//                    Vector vector = Map.decode(move);
-//                    total += vector.getDistance();
-//                }
-//
-//            }
-//
-//            System.out.println(direction.getMoveNumber());
-//            System.out.println(total);
-//        }
-//
-//
-//        /**
-//         * normal
-//         * 1521
-//         * AllMoveStats(
-//         * moveStats1=MoveStats(lowest=4, count=1521, total=341784),
-//         * moveStats2=MoveStats(lowest=4, count=1521, total=341816),
-//         * moveStats3=MoveStats(lowest=2, count=1521, total=338810),
-//         * moveStats4=MoveStats(lowest=2, count=1521, total=338774)
-//         * )
-//         */
+        for (int i = 0; i < 4; i++) {
+            int value;
+            if (i + 1 == move1 || i + 1 == move2) {
+                value = distance - 1;
+            } else {
+                value = distance + 1;
+            }
+            if (value < m[size * i]) {
+                m[size * i] = value;
+            }
+            m[size * i + 1] += value;
+            m[size * i + 2 + value]++;
+        }
+        // show
+        for (int ind = 0; ind < 4; ind++) {
+            List<Integer> list = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                list.add(m[12 * ind + i]);
+            }
+            System.out.println(list);
+        }
+    }
 
-
-        for (int i = 0; i < 10; i++) {
-            for (int j = i + 1; j < 10; j++) {
-                System.out.println(i + " " + j);
+    private static void testSingle(int[] cacheSingle, int distance, int move1, int move2) {
+        if (cacheSingle[0] > distance) {
+            cacheSingle[0] = distance;
+        }
+        cacheSingle[2]++;
+        cacheSingle[1] += distance;
+        cacheSingle[7 + distance]++;
+        for (int i = 0; i < 4; i++) {
+            if (i + 1 == move1 || i + 1 == move2) {
+                cacheSingle[3 + i]--;
+            } else {
+                cacheSingle[3 + i]++;
             }
         }
+        System.out.println(" L  T   C m1 m2 m3 m4  0  1  2  3");
+        System.out.println(Arrays.toString(cacheSingle));;
+    }
+
+    public static void main(String[] args) {
+
+        int[] m = new int[4 * (2 + 10)];
+        int size = 12;
+        m[0] = 1000;
+        m[12] = 1000;
+        m[24] = 1000;
+        m[36] = 1000;
+        int[] cacheSingle = new int[4 + 3 + 10];
+        cacheSingle[0] = 1000;
+
+//        testNormal(m, 2, 1,0);
+//        testSingle(cacheSingle, 2,1,0);
+
+        testNormal(m, 3, 3,0);
+        testSingle(cacheSingle, 3,3,0);
+
+        testNormal(m, 4, 3,0);
+        testSingle(cacheSingle, 4,3,0);
+
+        testNormal(m, 5, 3,0);
+        testSingle(cacheSingle, 5,3,0);
     }
 }
 
