@@ -32,151 +32,6 @@ import static com.example.landgame.enums.MoveType.*;
 import static com.example.landgame.config.Config.*;
 
 @Getter
-@Setter
-@ToString
-class MoveStats {
-
-
-    //    public static final int SIZE = 400;
-//    private int score;
-    private int lowest;
-    private int count;
-    private int total;
-
-    // index is distance
-    // value is count
-//    private int[] queue;
-
-    public MoveStats() {
-        this.count = 0;
-        this.total = 0;
-        this.lowest = 1000;
-//        this.lowest = SIZE;
-//        this.queue = new int[SIZE];
-    }
-
-    public void addDistance(int distance) {
-        if (distance < lowest) {
-            lowest = distance;
-        }
-        this.count++;
-        this.total += distance;
-//        this.queue[distance]++;
-//        this.score += (float) 1 / (sum * sum);
-    }
-
-//    public void removeDistance(int distance) {
-//        // there might be new lowest
-//        this.count--;
-//        this.total -= distance;
-//        this.queue[distance]--;
-//        if (distance == lowest && this.queue[distance] == 0) {
-//            int best = SIZE;
-//            for (int i = distance; i < SIZE; i++) {
-//                int n = this.queue[i];
-//                if (n < best) {
-//                    best = n;
-//                    break;
-//                }
-//            }
-//            this.lowest = best;
-//        }
-//    }
-
-
-    public float getScore() {
-        int a = this.lowest * this.total;
-        if (a == 0) {
-            return 0;
-        }
-//        System.out.println(this);
-        return (float) 1 / a;
-    }
-}
-
-@Getter
-@ToString
-class AllMoveStats {
-    private final MoveStats moveStats1;
-    private final MoveStats moveStats2;
-    private final MoveStats moveStats3;
-    private final MoveStats moveStats4;
-
-    public AllMoveStats() {
-        this.moveStats1 = new MoveStats();
-        this.moveStats2 = new MoveStats();
-        this.moveStats3 = new MoveStats();
-        this.moveStats4 = new MoveStats();
-    }
-
-    public void addVector(Vector vector) {
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-
-        for (int i = 1; i <= 4; i++) {
-            if (i == move1 || i == move2) {
-                get(i).addDistance(distance - 1);
-            } else {
-                get(i).addDistance(distance + 1);
-            }
-
-        }
-    }
-
-//    public void removeVector(Vector vector) {
-//        int distance = vector.getDistance();
-//        int move1 = vector.getMove1();
-//        int move2 = vector.getMove2();
-//
-//        for (int i = 1; i <= 4; i++) {
-//            if (i == move1 || i == move2) {
-//                get(i).removeDistance(distance - 1);
-//            } else {
-//                get(i).removeDistance(distance + 1);
-//            }
-//
-//        }
-//    }
-
-//    private void add(int i, int distance) {
-//        switch (i) {
-//            case 1:
-//                get()
-//                this.moveStats1.addDistance(distance);
-//                break;
-//            case 2:
-//                this.moveStats2.addDistance(distance);
-//                break;
-//            case 3:
-//                this.moveStats3.addDistance(distance);
-//                break;
-//            case 4:
-//                this.moveStats4.addDistance(distance);
-//                break;
-//        }
-//    }
-
-    //    public void addStat(int t, int distance) {
-//        get(t).addDistance(distance);
-//    }
-//
-    public MoveStats get(int i) {
-        switch (i) {
-            case 1:
-                return this.moveStats1;
-            case 2:
-                return this.moveStats2;
-            case 3:
-                return this.moveStats3;
-            case 4:
-                return this.moveStats4;
-        }
-        return null;
-    }
-}
-
-@Getter
 public class Game {
 
     public static final boolean globalCheck = true;
@@ -494,7 +349,7 @@ public class Game {
 
     private <T extends Entity> AllMoveStats getAllMoveStats(Player player, List<T> list) {
 
-        AllMoveStats allMoveStats = new AllMoveStats();
+        AllMoveStats allMoveStats = new AllMoveStats(0);
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
 
@@ -503,7 +358,7 @@ public class Game {
                 if (number != -1) {
 
                     Vector vector = PathMatrix.decode(number);
-                    allMoveStats.addVector(vector);
+                    allMoveStats.addVector2(vector);
 //                    int distance = vector.getDistance();
 //                    int move1 = vector.getMove1();
 //                    int move2 = vector.getMove2();

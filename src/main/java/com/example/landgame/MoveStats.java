@@ -32,6 +32,21 @@ public class MoveStats {
         this.queue = new int[MAX_SIZE];
     }
 
+
+    public MoveStats(int i) {
+        this.count = 0;
+        this.total = 0;
+        this.lowest = IF_MAX;
+        this.queue = new int[0];
+    }
+
+    public MoveStats(int lowest, int total) {
+        this.count = 0;
+        this.total = total;
+        this.lowest = lowest;
+        this.queue = new int[0];
+    }
+
     public void addDistance(int distance) {
         if (distance < lowest) {
             lowest = distance;
@@ -39,6 +54,16 @@ public class MoveStats {
         this.count++;
         this.total += distance;
         this.queue[distance]++;
+//        this.score += (float) 1 / (sum * sum);
+    }
+
+    public void addDistance2(int distance) {
+        if (distance < lowest) {
+            lowest = distance;
+        }
+        this.count++;
+        this.total += distance;
+//        this.queue[distance]++;
 //        this.score += (float) 1 / (sum * sum);
     }
 
