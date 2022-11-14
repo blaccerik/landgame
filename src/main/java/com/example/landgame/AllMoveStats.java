@@ -4,6 +4,7 @@ import com.example.landgame.pathfinding.Vector;
 import lombok.Getter;
 import lombok.ToString;
 
+
 @Getter
 @ToString
 public class AllMoveStats {

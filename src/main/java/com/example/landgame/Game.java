@@ -15,10 +15,12 @@ import com.example.landgame.pathfinding.Direction;
 import com.example.landgame.pathfinding.PathMatrix;
 import com.example.landgame.pathfinding.Vector;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Value;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +32,7 @@ import java.util.Random;
 import static com.example.landgame.enums.TerrainType.*;
 import static com.example.landgame.enums.MoveType.*;
 import static com.example.landgame.config.Config.*;
+
 
 @Getter
 public class Game {
@@ -327,7 +330,7 @@ public class Game {
         AllMoveStats allMoveStats = new AllMoveStats(0);
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
-                forcePath += this.map.findPath(player.getX(), player.getY(), entity.getX(), entity.getY());
+//                forcePath += this.map.findPath(player.getX(), player.getY(), entity.getX(), entity.getY());
                 long s;
                 long e;
                 s = System.nanoTime();
@@ -336,13 +339,15 @@ public class Game {
                 times[7] += e - s;
                 if (number != -1) {
 
-                    Vector vector = PathMatrix.decode(number);
-
+                    s = System.nanoTime();
+                    Vector vector = Map.decode(number);
+                    e = System.nanoTime();
+                    times[8] += e - s;
                     s = System.nanoTime();
                     // todo store stats locally
                     allMoveStats.addVector2(vector);
                     e = System.nanoTime();
-                    times[8] += e - s;
+                    times[9] += e - s;
 //                    int distance = vector.getDistance();
 //                    int move1 = vector.getMove1();
 //                    int move2 = vector.getMove2();
@@ -502,6 +507,7 @@ public class Game {
 
     private void show() {
 
+        System.out.print(tick);
         System.out.println("-------------------------------------------------");
         this.amount[2] = this.resources.size();
         this.amount[5] = this.players.size();
@@ -526,7 +532,10 @@ public class Game {
         stringBuilder.append(String.format("% 5d ", this.times[7] / 1_000_000));
         stringBuilder.append(" ");
         stringBuilder.append(String.format("% 5d ", this.times[8] / 1_000_000));
+        stringBuilder.append(" ");
+        stringBuilder.append(String.format("% 5d ", this.times[9] / 1_000_000));
         stringBuilder.append("\n");
+
         stringBuilder.append("+Res ");
         stringBuilder.append(String.format("% 5d ", this.amount[0]));
         stringBuilder.append(" -Res ");
@@ -541,13 +550,7 @@ public class Game {
         Arrays.fill(this.amount, 0);
     }
 
+
     public static void main(String[] args) {
-
-
-        for (int i = 0; i < 10; i++) {
-            for (int j = i + 1; j < 10; j++) {
-                System.out.println(i + " " + j);
-            }
-        }
     }
 }
