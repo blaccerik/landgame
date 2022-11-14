@@ -14,7 +14,10 @@ import com.example.landgame.objects.Tree;
 import com.example.landgame.pathfinding.Direction;
 import com.example.landgame.pathfinding.PathMatrix;
 import com.example.landgame.pathfinding.Vector;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -23,8 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.example.landgame.enums.TerrainType.*;
 import static com.example.landgame.enums.MoveType.*;
@@ -33,11 +34,14 @@ import static com.example.landgame.config.Config.*;
 @Getter
 public class Game {
 
-    public static final boolean globalCheck = true;
-    public static final boolean globalTime = true;
-    long[] funcTimes = new long[8];
-    static long check = 0;
-//    long[] time = new long[6];
+    public static final boolean globalCheck = false;
+//    public static final boolean globalTime = true;
+//    long[] funcTimes = new long[8];
+
+    long[] times = new long[12];
+    long[] amount = new long[8];
+    public static long forcePath = 0;
+    public static final boolean countAmount = true;
 
     public static final boolean debug = false;
 
@@ -65,8 +69,8 @@ public class Game {
 
     public final static float goodScore = 1000000;
 
-    //    private final AllMoveStats[][] staticObjectCache;
-    private final int[][][] cache;
+//    private final AllMoveStats[][] staticObjectCache;
+
     private final Random random;
 
 
@@ -83,20 +87,6 @@ public class Game {
         this.resources = new ArrayList<>();
         this.buildings = new ArrayList<>();
 
-        int numberOfValues = 2;
-        int directionNumber = 4;
-        int size = 400;
-        this.cache = new int[this.map.getWidth()][this.map.getHeight()][directionNumber * (numberOfValues + size)];
-
-        for (int i = 0; i < this.map.getHeight(); i++) {
-            for (int j = 0; j < this.map.getWidth(); j++) {
-                this.cache[i][j][0] = 1000;
-                this.cache[i][j][402] = 1000;
-                this.cache[i][j][402 * 2] = 1000;
-                this.cache[i][j][402 * 3] = 1000;
-            }
-        }
-
 //        this.staticObjectCache = new AllMoveStats[this.map.getHeight()][this.map.getWidth()];
 //        for (int i = 0; i < this.map.getHeight(); i++) {
 //            for (int j = 0; j < this.map.getWidth(); j++) {
@@ -105,20 +95,10 @@ public class Game {
 //        }
 
         List<Team> teams = putEntities(entities);
+
         this.teams = new Team[teams.size()];
         teams.toArray(this.teams);
-
-//        show();
     }
-
-//    private void show() {
-//        for (long l : this.time) {
-//            System.out.printf("% 5d", l / 1_000_000);
-//            System.out.print(" ");
-//        }
-//        System.out.println();
-//        Arrays.fill(this.time, 0);
-//    }
 
     private List<Team> putEntities(List<Entity> list) {
         List<Team> teams = new ArrayList<>();
@@ -159,249 +139,17 @@ public class Game {
     }
 
     private void addResource(Resource resource) {
-        check += this.map.findPath(0,0, resource.getX(), resource.getY());
-
-
-        long s;
-        long e;
-
-//        s = System.nanoTime();
-//        // find direction stats for that res
-//        for (int i = 0; i < this.map.getWidth(); i++) {
-//            for (int j = 0; j < this.map.getHeight(); j++) {
-//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-//                if (n != -1) {
-//                    Vector vector = Map.decode(n);
-//                    this.staticObjectCache[i][j].addVector(vector);
-//                }
-//            }
-//        }
-//        e = System.nanoTime();
-//        this.time[0] += e - s;
-
-//        s = System.nanoTime();
-        // find direction stats for that res
-        for (int i = 0; i < this.map.getWidth(); i++) {
-            for (int j = 0; j < this.map.getHeight(); j++) {
-                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                if (n != -1) {
-                    Vector vector = Map.decode(n);
-                    addToCache(i,j,vector);
-                }
-            }
-        }
-//        e = System.nanoTime();
-//        this.time[2] += e - s;
-
-//        for (int i = 0; i < 4; i++) {
-//            for (int x = 0; x < this.map.getWidth(); x++) {
-//                for (int y = 0; y < this.map.getHeight(); y++) {
-//                    int low = this.staticObjectCache[x][y].get(i + 1).getLowest();
-//                    int total = this.staticObjectCache[x][y].get(i + 1).getTotal();
-//                    int low2 = this.cache[x][y][402 * i];
-//                    int total2 = this.cache[x][y][402 * i + 1];
-//                    if (low != low2) {
-//                        System.out.println(x + " " + y + " " + i);
-//                        throw new RuntimeException(low + " " + low2);
-//                    }
-//                    if (total2 != total) {
-//                        System.out.println(x + " " + y + " " + i);
-//                        throw new RuntimeException(total + " " + total2);
-//                    }
-//                }
-//            }
-//        }
-
         this.resources.add(resource);
-    }
-
-    private void addToCache(int x, int y, Vector vector) {
-        final int size = 400 + 2;
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-        int[] m = this.cache[x][y];
-        for (int i = 0; i < 4; i++) {
-            int value;
-            if (i + 1 == move1 || i + 1 == move2) {
-                value = distance - 1;
-            } else {
-                value = distance + 1;
-            }
-            if (value < m[size * i]) {
-                m[size * i] = value;
-            }
-            m[size * i + 1] += value;
-            m[size * i + 2 + value]++;
+        if (countAmount) {
+            amount[0] += 1;
         }
     }
 
     private void removeResource(Resource resource) {
-        check += this.map.findPath(0,0, resource.getX(), resource.getY());
-//        System.out.println(this.staticObjectCache[0][0].get(1));
-//
-//        for (int ind = 0; ind < 4; ind++) {
-//            List<Integer> list = new ArrayList<>();
-//            for (int i = 0; i < 10; i++) {
-//                list.add(this.cache[0][0][402 * ind + i]);
-//            }
-//            System.out.println(list);
-//        }
-
-
-        long s;
-        long e;
-
-//        s = System.nanoTime();
-//        for (int i = 0; i < this.map.getWidth(); i++) {
-//            for (int j = 0; j < this.map.getHeight(); j++) {
-//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-//                if (n != -1) {
-//                    Vector vector = Map.decode(n);
-//                    // todo store values in array not objects
-//                    this.staticObjectCache[i][j].removeVector(vector);
-//                }
-//            }
-//        }
-//        e = System.nanoTime();
-//        this.time[1] += e - s;
-
-//        s = System.nanoTime();
-        // find direction stats for that res
-        for (int i = 0; i < this.map.getWidth(); i++) {
-            for (int j = 0; j < this.map.getHeight(); j++) {
-                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-                if (n != -1) {
-                    Vector vector = Map.decode(n);
-                    removeFromCache(i,j,vector);
-
-                }
-            }
-        }
-//        e = System.nanoTime();
-//        this.time[3] += e - s;
-
-
-//        s = System.nanoTime();
-//        // find direction stats for that res
-//        for (int i = 0; i < this.map.getWidth(); i++) {
-//            for (int j = 0; j < this.map.getHeight(); j++) {
-//                int n = this.map.findPath(i,j, resource.getX(), resource.getY());
-//                if (n != -1) {
-//                    Vector vector = Map.decode(n);
-//                    if (removeFromFastCache(i,j,vector)) {
-//                        int[] m = this.cacheFast[i][j];
-//                        m[0] = 1000;
-//                        m[1] = 0;
-//                        m[2] = 1000;
-//                        m[3] = 0;
-//                        m[4] = 1000;
-//                        m[5] = 0;
-//                        m[6] = 1000;
-//                        m[7] = 0;
-//                        for (Resource resource1 : this.resources) {
-//                            int n2 = this.map.findPath(i,j, resource1.getX(), resource1.getY());
-//                            if (n2 != -1) {
-//                                Vector vector2 = Map.decode(n2);
-//                                addToCacheFast(i,j,vector2);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        e = System.nanoTime();
-//        this.time[5] += e - s;
-
-
-
-        // todo add remove for fast cache
-
-//        System.out.println(this.staticObjectCache[0][0].get(1));
-//        list = new ArrayList<>();
-//        for (int i = 0; i < 10; i++) {
-//            list.add(this.cache[0][0][i]);
-//        }
-//        System.out.println(list);
-
-//        for (int i = 0; i < 4; i++) {
-//            for (int x = 0; x < this.map.getWidth(); x++) {
-//                for (int y = 0; y < this.map.getHeight(); y++) {
-//                    int low = this.staticObjectCache[x][y].get(i + 1).getLowest();
-//                    int total = this.staticObjectCache[x][y].get(i + 1).getTotal();
-//                    int low2 = this.cache[x][y][402 * i];
-//                    int total2 = this.cache[x][y][402 * i + 1];
-//                    if (low != low2) {
-//                        System.out.println(x + " " + y + " " + i);
-//                        throw new RuntimeException(low + " " + low2);
-//                    }
-//                    if (total2 != total) {
-//                        System.out.println(x + " " + y + " " + i);
-//                        throw new RuntimeException(total + " " + total2);
-//                    }
-//                }
-//            }
-//        }
-
-//        this.funcTimes[7] += 1;
         this.resources.remove(resource);
         this.map.getTile(resource.getX(), resource.getY()).setEntity(null);
-    }
-
-    private void removeFromCache(int x, int y, Vector vector) {
-        final int size = 400 + 2;
-        int distance = vector.getDistance();
-        int move1 = vector.getMove1();
-        int move2 = vector.getMove2();
-        int[] m = this.cache[x][y];
-        for (int i = 0; i < 4; i++) {
-            int indexShift = i * size;
-            int value;
-            if (i + 1 == move1 || i + 1 == move2) {
-                value = distance - 1;
-            } else {
-                value = distance + 1;
-            }
-            // total
-            m[indexShift + 1] -= value;
-            // distance
-            int distance2 = m[indexShift + 2 + value];
-            distance2--;
-            m[indexShift + 2 + value] = distance2;
-
-            // lowest
-            int lowest = m[indexShift];
-            if (value == lowest && distance2 == 0) {
-
-                int best = 1000;
-                for (int j = value; j < 400; j++) {
-                    int n = m[j + indexShift + 2];
-                    if (n != 0) {
-                        best = j;
-                        break;
-                    }
-                }
-
-//                if (x == 147 && y == 0) {
-//
-//                    List<Integer> list = new ArrayList<>();
-//                    for (int listindex = 0; listindex < 20; listindex++) {
-//                        list.add(m[i * size + listindex]);
-//                    }
-//                    System.out.println(list);
-//                    System.out.println(size * i + 2 + value);
-//                    System.out.println(m[size * i + 2 + value]);
-//                    System.out.println(m[size * i + 3 + value]);
-//                    System.out.println(m[size * i + 4 + value]);
-//                    System.out.println("s " + i + " " + m[size * i]);
-//                }
-
-                m[size * i] = best;
-//
-//                if (x == 147 && y == 0) {
-//                    System.out.println("e " + i + " " + m[size * i]);
-//                }
-            }
+        if (countAmount) {
+            amount[1] += 1;
         }
     }
 
@@ -537,7 +285,7 @@ public class Game {
         int badMove = Team.oppositeMove(player.getLastMove());
         Direction badDirection = null;
 //        int badMove = 100;
-        for (Direction direction: com.example.landgame.Game.directions) {
+        for (Direction direction: Game.directions) {
             int finalX = x + direction.getX();
             int finalY = y + direction.getY();
             int moveNumber = direction.getMoveNumber();
@@ -576,16 +324,25 @@ public class Game {
 
     private <T extends Entity> AllMoveStats getAllMoveStats(Player player, List<T> list) {
 
-        com.example.landgame.AllMoveStats allMoveStats = new com.example.landgame.AllMoveStats();
+        AllMoveStats allMoveStats = new AllMoveStats(0);
         for (Entity entity: list) {
             if (!entity.sameTeam(player)) {
-
+                forcePath += this.map.findPath(player.getX(), player.getY(), entity.getX(), entity.getY());
+                long s;
+                long e;
+                s = System.nanoTime();
                 int number = this.map.findPath(player.getX(), player.getY(), entity.getX(), entity.getY());
-
+                e = System.nanoTime();
+                times[7] += e - s;
                 if (number != -1) {
 
                     Vector vector = PathMatrix.decode(number);
-                    allMoveStats.addVector(vector);
+
+                    s = System.nanoTime();
+                    // todo store stats locally
+                    allMoveStats.addVector2(vector);
+                    e = System.nanoTime();
+                    times[8] += e - s;
 //                    int distance = vector.getDistance();
 //                    int move1 = vector.getMove1();
 //                    int move2 = vector.getMove2();
@@ -680,7 +437,10 @@ public class Game {
 
         for (Player player: this.players) {
 
+            s = System.nanoTime();
             List<Direction> legalMoves = getLegalMovesForPlayer(player);
+            e = System.nanoTime();
+            times[1] += e - s;
 
             // if only 1 move then make it
             if (legalMoves.size() == 1) {
@@ -688,61 +448,18 @@ public class Game {
                 makeMove(player, direction);
             } else if (legalMoves.size() > 1) {
 
-
                 s = System.nanoTime();
-
                 AllMoveStats enemyStats = getAllMoveStats(player, this.players);
-                AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
-
                 e = System.nanoTime();
-                if (globalTime) {
-                    this.funcTimes[1] += e - s;
-                }
-
+                times[2] += e - s;
                 s = System.nanoTime();
-
-                // get stats from cache
-//                AllMoveStats resourceStats = this.staticObjectCache[player.getX()][player.getY()];
-
-                int[] m = this.cache[player.getX()][player.getY()];
-                AllMoveStats resourceStats = new AllMoveStats(
-                        m[0],m[1],
-                        m[402],m[403],
-                        m[804],m[805],
-                        m[1206],m[1207]
-                );
-
-
-//                com.example.landgame.AllMoveStats resourceStats2 = getAllMoveStats(player, this.resources);
-//                for (int i = 1; i <= 4; i++) {
-//                    if (resourceStats.get(i).getCount() != resourceStats2.get(i).getCount() ||
-//                            resourceStats.get(i).getTotal() != resourceStats2.get(i).getTotal()
-//                            || resourceStats.get(i).getLowest() != resourceStats2.get(i).getLowest()
-//                    ) {
-//                        int n = 10;
-//                        ArrayList<Integer> outArray = new ArrayList<>();
-//                        for (int in = 0; in < n; in++)
-//                            outArray.add(resourceStats.getMoveStats2().getQueue()[in]);
-//                        System.out.println(outArray);
-//                        System.out.println(resourceStats.getMoveStats2().getLowest());
-//                        n = 10;
-//                        outArray = new ArrayList<>();
-//                        for (int in = 0; in < n; in++)
-//                            outArray.add(resourceStats2.getMoveStats2().getQueue()[in]);
-//                        System.out.println(outArray);
-//                        System.out.println(resourceStats2.getMoveStats2().getLowest());
-//                        throw new RuntimeException("\n" +
-//                                resourceStats
-//                                + "\n" +
-//                                resourceStats2
-//                        );
-//                    }
-//                }
-
+                AllMoveStats houseStats = getAllMoveStats(player, this.buildings);
                 e = System.nanoTime();
-                if (globalTime) {
-                    this.funcTimes[2] += e - s;
-                }
+                times[3] += e - s;
+                s = System.nanoTime();
+                AllMoveStats resourceStats = getAllMoveStats(player, this.resources);
+                e = System.nanoTime();
+                times[4] += e - s;
 
                 boolean canBuild = canBuild(player.getX(), player.getY());
 
@@ -762,53 +479,75 @@ public class Game {
         s = System.nanoTime();
         cleanup();
         e = System.nanoTime();
-        if (globalTime) {
-            this.funcTimes[3] += e - s;
-        }
+        times[5] += e - s;
 
+
+
+        s = System.nanoTime();
         for (Building building : this.buildings) {
             spawnPlayer(building);
         }
-
-        s = System.nanoTime();
-
         spawnResources();
-
         e = System.nanoTime();
-        this.funcTimes[4] += e - s;
-
+        times[6] += e - s;
         changeWeights();
 
         long end = System.nanoTime();
 
-        this.funcTimes[0] += end - start;
+        times[0] += end - start;
 
-//        show();
-
-        // stats
-        if (tick % 10 == 0) {
-            System.out.printf("% 5d T: % 5d O: % 6d R: % 6d C: % 6d S: % 6d PS| % 6d RS| % 6d EX| % 6d H| %d\n",
-                    tick,
-                    this.funcTimes[0] / 1_000_000,
-                    this.funcTimes[1] / 1_000_000,
-                    this.funcTimes[2] / 1_000_000,
-                    this.funcTimes[3] / 1_000_000,
-                    this.funcTimes[4] / 1_000_000,
-                    this.players.size(),
-                    this.resources.size(),
-                    this.map.getExploredTiles(),
-                    this.map.getHash()
-
-            );
-//            System.out.println(
-//                    (this.funcTimes[5] / 1_000_000) + " " +
-//                    (this.funcTimes[6] / 1_000_000) + " " +
-//                    (this.funcTimes[7])
-//
-//            );
-        }
-        Arrays.fill(this.funcTimes, 0);
+        show();
         tick++;
     }
-}
 
+    private void show() {
+
+        System.out.println("-------------------------------------------------");
+        this.amount[2] = this.resources.size();
+        this.amount[5] = this.players.size();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Total ");
+        stringBuilder.append(String.format("% 5d ", this.times[0] / 1_000_000));
+        stringBuilder.append(" Legal ");
+        stringBuilder.append(String.format("% 5d ", this.times[1] / 1_000_000));
+        stringBuilder.append(" Player ");
+        stringBuilder.append(String.format("% 5d ", this.times[2] / 1_000_000));
+        stringBuilder.append(" Build ");
+        stringBuilder.append(String.format("% 5d ", this.times[3] / 1_000_000));
+        stringBuilder.append(" Res ");
+        stringBuilder.append(String.format("% 5d ", this.times[4] / 1_000_000));
+        stringBuilder.append(" CleanUp ");
+        stringBuilder.append(String.format("% 5d ", this.times[5] / 1_000_000));
+        stringBuilder.append(" spawn ");
+        stringBuilder.append(String.format("% 5d ", this.times[6] / 1_000_000));
+
+        stringBuilder.append(" extra ");
+        stringBuilder.append(String.format("% 5d ", this.times[7] / 1_000_000));
+        stringBuilder.append(" ");
+        stringBuilder.append(String.format("% 5d ", this.times[8] / 1_000_000));
+        stringBuilder.append("\n");
+        stringBuilder.append("+Res ");
+        stringBuilder.append(String.format("% 5d ", this.amount[0]));
+        stringBuilder.append(" -Res ");
+        stringBuilder.append(String.format("% 5d ", this.amount[1]));
+        stringBuilder.append(" ResLen ");
+        stringBuilder.append(String.format("% 5d ", this.amount[2]));
+        stringBuilder.append(" PlyrLen ");
+        stringBuilder.append(String.format("% 5d ", this.amount[5]));
+
+        System.out.println(stringBuilder);
+        Arrays.fill(this.times, 0);
+        Arrays.fill(this.amount, 0);
+    }
+
+    public static void main(String[] args) {
+
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = i + 1; j < 10; j++) {
+                System.out.println(i + " " + j);
+            }
+        }
+    }
+}
